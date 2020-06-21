@@ -1,0 +1,13 @@
+name: miio
+description: Dart implementation for MIIO protocol.
+version: 0.0.1
+homepage: https://github.com/ctrysbita/miio-dart
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  crypto: ^2.1.5
+  encrypt: ^4.0.2
+
+dev_dependencies:
