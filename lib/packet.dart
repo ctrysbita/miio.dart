@@ -21,6 +21,10 @@ class MiioPacket {
   /// 128 bits device token.
   final BigInt _token;
 
+  /// 128 bits checksum.
+  Uint8List _checksum;
+  Uint8List get checksum => _checksum;
+
   /// Variable sized payload.
   Map<String, dynamic> _payload = null;
   Uint8List _binaryPayload = null;
@@ -48,9 +52,9 @@ class MiioPacket {
         stamp = DateTime.now().millisecondsSinceEpoch ~/ 1000,
         _token = BigInt.zero;
 
-  /// Parse packet from binary.
-  factory MiioPacket.parse(Uint8List bytes) {
-    var length = bytes[2] << 8 & bytes[3];
+  /// Parse packet from response.
+  factory MiioPacket.parse(Uint8List bytes, {BigInt token}) {
+    var length = bytes[2] << 8 | bytes[3];
 
     var unknown = 0;
     for (var i = 4; i <= 7; ++i) {
@@ -70,14 +74,31 @@ class MiioPacket {
       stamp |= bytes[i];
     }
 
-    var sum = BigInt.zero;
-    for (var i in bytes.sublist(16, 32)) sum = sum << 8 | BigInt.from(i);
+    var checksum = bytes.sublist(16, 32);
 
-    return MiioPacket._raw(length, unknown, deviceId, stamp, sum);
+    var packet = MiioPacket._raw(
+      length,
+      unknown,
+      deviceId,
+      stamp,
+      token,
+      checksum,
+    ).._binaryPayload = bytes;
+
+    if (token != null)
+      packet.payload = jsonDecode(utf8.decode(packet._decrypt(bytes)));
+
+    return packet;
   }
 
   MiioPacket._raw(
-      this._length, this.unknown, this.deviceId, this.stamp, this._token);
+    this._length,
+    this.unknown,
+    this.deviceId,
+    this.stamp,
+    this._token,
+    this._checksum,
+  );
 
   /// Construct binary for packet.
   Uint8List get binary {
@@ -103,6 +124,7 @@ class MiioPacket {
     var stamp = this.stamp;
     for (var i = 15; i >= 12; --i, stamp >>= 8) bytes[i] = 0xFF;
 
+    // Variable sized payload.
     if (_binaryPayload != null) bytes.setAll(32, _binaryPayload);
 
     if (this.unknown == 0xFFFFFFFF)
@@ -115,7 +137,7 @@ class MiioPacket {
     return bytes;
   }
 
-  Uint8List _encrypt(List<int> bytes) {
+  Uint8List _encrypt(Uint8List bytes) {
     var tokenBytes = _token.toBytes(16);
 
     // Key = MD5(token)
@@ -123,14 +145,27 @@ class MiioPacket {
     var key = Key(tokenMd5.bytes);
 
     // IV  = MD5(MD5(Key) + token)
-    var iv = IV(md5
-        .convert(
-            (BigInt.parse(tokenMd5.toString(), radix: 16) + _token).toBytes())
-        .bytes);
+    var iv = IV(md5.convert(tokenMd5.bytes + tokenBytes).bytes);
 
     var encrypted = AES(key, mode: AESMode.cbc).encrypt(bytes, iv: iv);
 
     return encrypted.bytes;
+  }
+
+  Uint8List _decrypt(Uint8List bytes) {
+    var tokenBytes = _token.toBytes(16);
+
+    // Key = MD5(token)
+    var tokenMd5 = md5.convert(tokenBytes);
+    var key = Key(tokenMd5.bytes);
+
+    // IV  = MD5(MD5(Key) + token)
+    var iv = IV(md5.convert(tokenMd5.bytes + tokenBytes).bytes);
+
+    var decrypted =
+        AES(key, mode: AESMode.cbc).decrypt(Encrypted(bytes), iv: iv);
+
+    return decrypted;
   }
 
   @override
@@ -138,5 +173,5 @@ class MiioPacket {
       'device: ${deviceId.toRadixString(16).padLeft(8, '0')}, '
       'unknown: ${unknown.toRadixString(16).padLeft(8, '0')}, '
       'stamp: ${stamp.toRadixString(16).padLeft(8, '0')} '
-      'token/sum: ${_token.toRadixString(16).padLeft(32, '0')})';
+      'token: ${_token?.toRadixString(16)?.padLeft(32, '0')})';
 }
