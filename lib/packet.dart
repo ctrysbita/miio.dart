@@ -39,9 +39,9 @@ class MiioPacket {
     _length = _binaryPayload.length + 0x20;
   }
 
-  MiioPacket(this.deviceId, this._token)
+  MiioPacket(this.deviceId, this._token, {int stamp})
       : unknown = 0x00000000,
-        stamp = DateTime.now().millisecondsSinceEpoch ~/ 1000 {
+        stamp = stamp ?? DateTime.now().millisecondsSinceEpoch ~/ 1000 {
     assert(_token.bitLength <= 128);
   }
 
@@ -49,7 +49,7 @@ class MiioPacket {
   MiioPacket.hello()
       : unknown = 0xFFFFFFFF,
         deviceId = 0xFFFFFFFF,
-        stamp = DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        stamp = 0xFFFFFFFF,
         _token = BigInt.zero;
 
   /// Parse packet from response.
@@ -69,7 +69,7 @@ class MiioPacket {
     }
 
     var stamp = 0;
-    for (var i = 8; i <= 11; ++i) {
+    for (var i = 12; i <= 15; ++i) {
       stamp <<= 8;
       stamp |= bytes[i];
     }
@@ -83,10 +83,12 @@ class MiioPacket {
       stamp,
       token,
       checksum,
-    ).._binaryPayload = bytes;
+    ).._binaryPayload = bytes.sublist(32);
 
-    if (token != null)
-      packet.payload = jsonDecode(utf8.decode(packet._decrypt(bytes)));
+    if (token != null) {
+      var decrypted = packet._decrypt(packet._binaryPayload);
+      packet._payload = jsonDecode(utf8.decode(decrypted));
+    }
 
     return packet;
   }
@@ -122,10 +124,13 @@ class MiioPacket {
 
     // 4 bytes stamp.
     var stamp = this.stamp;
-    for (var i = 15; i >= 12; --i, stamp >>= 8) bytes[i] = 0xFF;
+    for (var i = 15; i >= 12; --i, stamp >>= 8) bytes[i] = stamp & 0xFF;
 
     // Variable sized payload.
     if (_binaryPayload != null) bytes.setAll(32, _binaryPayload);
+
+    // Initialize checksum field with token.
+    bytes.setAll(16, _token.toBytes(16));
 
     if (this.unknown == 0xFFFFFFFF)
       // "Hello" packet.
