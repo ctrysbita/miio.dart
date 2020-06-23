@@ -31,6 +31,13 @@ void main(List<String> args) {
               ' Usually broadcast address of your subnet.',
           valueHelp: '192.168.1.255')
       ..addFlag('help', abbr: 'h', negatable: false, help: 'Print usage.'),
+    'send': argsParser.addCommand('send')
+      ..addOption('ip',
+          help: 'The IP address to send packet.', valueHelp: '192.168.1.100')
+      ..addOption('token',
+          help: 'The token for device.',
+          valueHelp: 'ffffffffffffffffffffffffffffffff')
+      ..addFlag('help', abbr: 'h', negatable: false, help: 'Print usage.'),
   };
 
   var argsResult = argsParser.parse(args);

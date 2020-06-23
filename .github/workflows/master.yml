@@ -1,0 +1,21 @@
+name: CI Build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cedx/setup-dart@v2
+      - run: pub get
+      - name: Build
+        run: dart2native ./bin/main.dart -o miio
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: Linux x86_64
+          path: ./miio
