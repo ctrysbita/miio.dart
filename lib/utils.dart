@@ -13,3 +13,8 @@ extension ToBytes on BigInt {
     return bytes.buffer.asUint8List();
   }
 }
+
+extension ToHexString on Uint8List {
+  String get hexString =>
+      this.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+}

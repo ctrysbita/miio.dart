@@ -178,5 +178,6 @@ class MiioPacket {
       'device: ${deviceId.toRadixString(16).padLeft(8, '0')}, '
       'unknown: ${unknown.toRadixString(16).padLeft(8, '0')}, '
       'stamp: ${stamp.toRadixString(16).padLeft(8, '0')} '
-      'token: ${_token?.toRadixString(16)?.padLeft(32, '0')})';
+      'token: ${_token?.toRadixString(16)?.padLeft(32, '0')} '
+      'checksum: ${checksum?.hexString})';
 }
