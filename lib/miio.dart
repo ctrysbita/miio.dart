@@ -52,7 +52,6 @@ class Miio {
       udpSocket.close();
     });
 
-    udpSocket.send(
-        MiioPacket.hello().binary, InternetAddress.tryParse(ip), 54321);
+    udpSocket.send(MiioPacket.hello().binary, InternetAddress(ip), 54321);
   }
 }
