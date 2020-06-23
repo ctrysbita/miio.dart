@@ -12,6 +12,7 @@ import 'package:tuple/tuple.dart';
 part 'utils.dart';
 part 'packet.dart';
 
+/// MIIO LAN protocol.
 class Miio {
   /// Send discovery packet to [ip].
   /// [callback] will be invoked while receiving a response.
