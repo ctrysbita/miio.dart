@@ -2,7 +2,7 @@
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   args:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: args
       url: "https://pub.flutter-io.cn"
@@ -44,14 +44,14 @@ packages:
     source: hosted
     version: "2.1.1"
   crypto:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: crypto
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.1.5"
   encrypt:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: encrypt
       url: "https://pub.flutter-io.cn"
@@ -71,6 +71,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.1.8"
+  miio:
+    dependency: "direct main"
+    description:
+      path: ".."
+      relative: true
+    source: path
+    version: "0.1.1"
   path:
     dependency: transitive
     description:
@@ -100,7 +107,7 @@ packages:
     source: hosted
     version: "1.9.3"
   tuple:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: tuple
       url: "https://pub.flutter-io.cn"
@@ -112,6 +119,6 @@ packages:
       name: typed_data
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.1.6"
+    version: "1.2.0"
 sdks:
   dart: ">=2.8.0 <3.0.0"

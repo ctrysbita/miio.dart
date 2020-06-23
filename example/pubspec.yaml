@@ -1,0 +1,11 @@
+name: miio_example
+description: Example for miio package.
+version: 0.0.1
+homepage: https://github.com/ctrysbita/miio-dart
+
+environment:
+  sdk: ">=2.8.0 <3.0.0"
+
+dependencies:
+  miio:
+    path: ../

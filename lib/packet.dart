@@ -43,8 +43,8 @@ class MiioPacket {
   Uint8List get checksum => _checksum;
 
   /// Variable sized payload.
-  Map<String, dynamic> _payload = null;
-  Uint8List _binaryPayload = null;
+  Map<String, dynamic> _payload;
+  Uint8List _binaryPayload;
 
   /// The encrypted binary payload will be calculated while setting payload.
   Map<String, dynamic> get payload => _payload;

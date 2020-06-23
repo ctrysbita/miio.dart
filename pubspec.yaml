@@ -1,15 +1,13 @@
 name: miio
-description: Dart implementation for MIIO LAN protocol.
-version: 0.1.0
+description: Dart implementation for Xiaomi MIIO LAN protocol.
+version: 0.1.1
 homepage: https://github.com/ctrysbita/miio-dart
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
   args: ^1.6.0
   crypto: ^2.1.5
   encrypt: ^4.0.2
   tuple: ^1.0.3
-
-dev_dependencies:
