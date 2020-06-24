@@ -15,12 +15,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:miio/miio.dart';
 
-void main(List<String> args) {
+void main(List<String> args) async {
   var argsParser = ArgParser()
     ..addFlag('help', abbr: 'h', negatable: false, help: 'Print usage.');
 
@@ -37,6 +38,7 @@ void main(List<String> args) {
       ..addOption('token',
           help: 'The token for device.',
           valueHelp: 'ffffffffffffffffffffffffffffffff')
+      ..addOption('payload', help: 'The payload of packet.')
       ..addFlag('help', abbr: 'h', negatable: false, help: 'Print usage.'),
   };
 
@@ -60,12 +62,43 @@ void main(List<String> args) {
     exit(0);
   }
 
+  await Miio.init();
+
   switch (commandResult.name) {
     case 'discover':
-      handleDiscover(commandResult);
+      await handleDiscover(commandResult);
+      break;
+    case 'send':
+      await handleSend(commandResult);
       break;
   }
+
+  Miio.instance.close();
 }
 
-void handleDiscover(ArgResults args) async => await Miio.discover(
-    args['ip'], (resp) => print('Found ${resp.item2} from ${resp.item1}'));
+Future<void> handleDiscover(ArgResults args) async =>
+    await Miio.instance.discover(
+        args['ip'], (resp) => print('Found ${resp.item2} from ${resp.item1}'));
+
+Future<void> handleSend(ArgResults args) async {
+  var ip = args['ip'];
+
+  print('$ip <- HELLO');
+  var hello = await Miio.instance.hello(ip);
+  print('$ip -> $hello');
+
+  var packet = MiioPacket(
+    hello.deviceId,
+    BigInt.parse(args['token'], radix: 16),
+    stamp: hello.stamp + 1,
+  );
+  packet.payload = jsonDecode(args['payload']);
+
+  print('$ip <- ${packet.payload}');
+  var resp = await Miio.instance.send(ip, packet);
+  print('$ip -> $resp');
+
+  print('--- PAYLOAD BEGIN ---');
+  print(JsonEncoder.withIndent('  ').convert(resp.payload));
+  print('--- PAYLOAD END ---');
+}

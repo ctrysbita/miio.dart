@@ -31,27 +31,120 @@ part 'packet.dart';
 
 /// MIIO LAN protocol.
 class Miio {
+  static Miio _instance;
+  static Miio get instance {
+    assert(_instance != null, 'Miio not initialized yet.');
+    return _instance;
+  }
+
+  final RawDatagramSocket _socket;
+  final Stream<RawSocketEvent> _broadcast;
+
+  Miio._(RawDatagramSocket socket)
+      : _socket = socket,
+        _broadcast = socket.asBroadcastStream();
+
+  static Future<Miio> init() async {
+    if (_instance != null) return _instance;
+
+    _instance =
+        Miio._(await RawDatagramSocket.bind(InternetAddress.anyIPv4, 54321));
+    return _instance;
+  }
+
+  /// Close socket.
+  ///
+  /// Miio should be re-initialized before next usage.
+  void close() {
+    _socket.close();
+    _instance = null;
+  }
+
   /// Send discovery packet to [ip].
   /// [callback] will be invoked while receiving a response.
-  static void discover(
+  Future<void> discover(
     String ip,
     Function(Tuple2<InternetAddress, MiioPacket>) callback, {
     Duration timeout = const Duration(seconds: 3),
   }) async {
-    var udpSocket =
-        await RawDatagramSocket.bind(InternetAddress.anyIPv4, 54321);
-    var broadcast = udpSocket.asBroadcastStream();
-
-    var subscription = broadcast.listen((event) {
+    var subscription = _broadcast.listen((event) {
       if (event != RawSocketEvent.read) return;
-      Datagram dg = udpSocket.receive();
-      callback(Tuple2(dg.address, MiioPacket.parse(dg.data)));
+      var dg = _socket.receive();
+      var resp = MiioPacket.parse(dg.data);
+      if (resp.length == 32 && resp.deviceId != 0xFFFFFFFF)
+        callback(Tuple2(dg.address, resp));
     });
+
+    var completer = Completer<void>();
     Timer(timeout, () {
       subscription.cancel();
-      udpSocket.close();
+      completer.complete();
     });
 
-    udpSocket.send(MiioPacket.hello().binary, InternetAddress(ip), 54321);
+    _socket.send(MiioPacket.hello().binary, InternetAddress(ip), 54321);
+
+    return completer.future;
+  }
+
+  /// Send a hello packet to [ip].
+  Future<MiioPacket> hello(
+    String ip, {
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    var completer = Completer<MiioPacket>();
+
+    StreamSubscription<RawSocketEvent> subscription;
+    subscription = _broadcast.listen((event) {
+      if (event != RawSocketEvent.read) return;
+      var dg = _socket.receive();
+      var resp = MiioPacket.parse(dg.data);
+      if (resp.length == 32 &&
+          resp.deviceId != 0xFFFFFFFF &&
+          dg.address.address == ip) {
+        completer.complete(resp);
+        subscription.cancel();
+      }
+    });
+
+    Timer(timeout, () {
+      if (completer.isCompleted) return;
+      subscription.cancel();
+      completer.complete();
+    });
+
+    _socket.send(MiioPacket.hello().binary, InternetAddress(ip), 54321);
+
+    return completer.future;
+  }
+
+  /// Send a [packet] to [ip].
+  Future<MiioPacket> send(
+    String ip,
+    MiioPacket packet, {
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    var completer = Completer<MiioPacket>();
+
+    StreamSubscription<RawSocketEvent> subscription;
+    subscription = _broadcast.listen((event) {
+      if (event != RawSocketEvent.read) return;
+      var dg = _socket.receive();
+      var resp = MiioPacket.parse(dg.data, token: packet._token);
+      if (dg.address.address == ip &&
+          (resp.stamp == packet.stamp || resp.stamp == packet.stamp - 1)) {
+        completer.complete(resp);
+        subscription.cancel();
+      }
+    });
+
+    Timer(timeout, () {
+      if (completer.isCompleted) return;
+      subscription.cancel();
+      completer.complete();
+    });
+
+    _socket.send(packet.binary, InternetAddress(ip), 54321);
+
+    return completer.future;
   }
 }
