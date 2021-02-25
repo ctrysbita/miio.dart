@@ -4,6 +4,18 @@ Dart implementation for MIIO LAN protocol.
 
 The protocol an encrypted, binary protocol based on UDP (port 54321), which is used to configure & control smart home devices made by Xiaomi Ecosystem.
 
+## CLI
+
+The package contains a simple CLI program that built on top of miio.
+
+### Example
+
+```
+miio discover --ip 192.168.1.255
+
+miio send --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff --payload '{\"id\": 1, \"method\": \"miIO.info\", \"params\": []}'
+```
+
 ## Protocol
 
 ```
