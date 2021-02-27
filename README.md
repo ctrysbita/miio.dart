@@ -65,5 +65,5 @@ Optional variable-sized payload:
     Payload encrypted with AES-128-CBC (PKCS#7 padding).
 
         Key = MD5(Token)
-        IV  = MD5(MD5(Key) + Token)
+        IV  = MD5(Key + Token)
 ```
