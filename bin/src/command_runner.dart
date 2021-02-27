@@ -13,9 +13,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'package:args/command_runner.dart';
 import 'package:logger/logger.dart';
 
-final logger = Logger(
-  filter: ProductionFilter(),
-  printer: PrettyPrinter(methodCount: 0, printTime: true),
-);
+import 'command/discover.dart';
+
+class MiioCommandRunner extends CommandRunner<void> {
+  MiioCommandRunner() : super('miio', 'Cli for handling MIIO protocol.') {
+    argParser.addOption(
+      'level',
+      abbr: 'l',
+      help: 'Log level.',
+      allowed: ['verbose', 'debug', 'info'],
+      defaultsTo: 'info',
+      callback: (level) {
+        Logger.level = const <String, Level>{
+              'verbose': Level.verbose,
+              'debug': Level.debug,
+              'info': Level.info,
+            }[level] ??
+            Level.info;
+      },
+    );
+
+    addCommand(DiscoverCommand());
+  }
+}

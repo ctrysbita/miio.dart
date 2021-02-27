@@ -232,9 +232,9 @@ class MiioPacket {
   @override
   String toString() => 'MiioPacket('
       'len: $length, '
-      'unknown: ${unknown.toRadixString(16).padLeft(8, '0')}, '
-      'device: ${deviceId.toRadixString(16).padLeft(8, '0')}, '
-      'stamp: ${stamp.toRadixString(16).padLeft(8, '0')} '
+      'unknown: ${unknown.toHexString(8)}, '
+      'device: ${deviceId.toHexString(8)}, '
+      'stamp: ${stamp.toHexString(8)} '
       'token: ${token?.hexString.padLeft(32, '0')} '
       'checksum: ${checksum.hexString}'
       ')';

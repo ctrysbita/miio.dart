@@ -20,7 +20,14 @@ final logger = Logger(
   printer: PrettyPrinter(methodCount: 0, printTime: true),
 );
 
-extension ToHexString on List<int> {
+extension IntToHexString on int {
+  String toHexString([int? width]) {
+    final hexStr = toRadixString(16);
+    return width == null ? hexStr : hexStr.padLeft(width, '0');
+  }
+}
+
+extension BytesToHexString on List<int> {
   String get hexString =>
       map((e) => e.toRadixString(16).padLeft(2, '0')).join();
 }
