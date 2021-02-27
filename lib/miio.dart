@@ -85,6 +85,13 @@ class Miio {
     final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
 
     late final StreamSubscription<RawSocketEvent> subscription;
+    final timer = Timer(timeout, () {
+      if (completer.isCompleted) return;
+      completer.complete();
+      subscription.cancel();
+      socket.close();
+    });
+
     subscription =
         socket.where((e) => e == RawSocketEvent.read).listen((e) async {
       var datagram = socket.receive();
@@ -95,13 +102,7 @@ class Miio {
 
       completer.complete(resp);
       subscription.cancel();
-      socket.close();
-    });
-
-    Timer(timeout, () {
-      if (completer.isCompleted) return;
-      completer.complete();
-      subscription.cancel();
+      timer.cancel();
       socket.close();
     });
 
