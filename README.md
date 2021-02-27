@@ -50,6 +50,7 @@ Device ID: 32 bits
 
 Stamp: 32 bit unsigned int
     Continously increasing counter.
+    Number of seconds since device startup.
 
 MD5 Checksum:
     Calculated for the whole packet including the MD5 field itself,

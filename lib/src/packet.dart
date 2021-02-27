@@ -54,9 +54,9 @@ class MiioPacket {
   /// 32 bits device ID.
   final int deviceId;
 
-  /// 32 bits stamp (continously increasing counter).
+  /// 32 bits stamp.
   ///
-  /// Default to current unix timestamp.
+  /// Number of seconds since device startup.
   final int stamp;
 
   /// 128 bits device token.
