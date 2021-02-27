@@ -19,8 +19,3 @@ final logger = Logger(
   filter: ProductionFilter(),
   printer: PrettyPrinter(methodCount: 0, printTime: true),
 );
-
-extension ToHexString on List<int> {
-  String get hexString =>
-      map((e) => e.toRadixString(16).padLeft(2, '0')).join();
-}
