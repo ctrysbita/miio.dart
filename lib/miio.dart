@@ -33,6 +33,12 @@ class Miio {
 
   Miio._();
 
+  /// Cache boot time of device from response packet.
+  void _cacheStamp(MiioPacket packet) {
+    _stamps[packet.deviceId] =
+        DateTime.now().subtract(Duration(seconds: packet.stamp));
+  }
+
   /// Get current stamp of device from cache if existed.
   int? stampOf(int deviceId) {
     final bootTime = _stamps[deviceId];
@@ -52,11 +58,12 @@ class Miio {
 
     socket.send(MiioPacket.hello.binary, address, 54321);
 
-    await for (var e in socket.where((e) => e == RawSocketEvent.read)) {
+    await for (var _ in socket.where((e) => e == RawSocketEvent.read)) {
       var datagram = socket.receive();
       if (datagram == null) continue;
 
       var resp = await MiioPacket.parse(datagram.data);
+      _cacheStamp(resp);
       yield Tuple2(datagram.address, resp);
     }
   }
@@ -84,6 +91,7 @@ class Miio {
       if (datagram == null) return;
 
       var resp = await MiioPacket.parse(datagram.data, token: packet.token);
+      _cacheStamp(resp);
 
       completer.complete(resp);
       subscription.cancel();
