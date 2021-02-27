@@ -26,7 +26,7 @@ import 'utils.dart';
 @immutable
 class MiioPacket {
   /// AES-CBC cipher for payload encryption.
-  static final _cipher = AesCbc.with256bits(macAlgorithm: Hmac.sha256());
+  static final _cipher = AesCbc.with128bits(macAlgorithm: MacAlgorithm.empty);
 
   /// The "hello" packet.
   static final hello = MiioPacket._(
@@ -92,10 +92,16 @@ class MiioPacket {
     assert(token.length == 16);
     stamp ??= DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-    var binary = Uint8List(0x20);
-    // Variable sized payload.
+    late Uint8List binary;
     if (payload != null) {
-      binary.addAll(await encrypt(utf8.encode(jsonEncode(payload)), token));
+      // Variable sized payload.
+      var binaryPayload =
+          await encrypt(utf8.encode(jsonEncode(payload)), token);
+      binary = Uint8List(0x20 + binaryPayload.length)
+        ..setAll(0x20, binaryPayload);
+    } else {
+      // Header only packet.
+      binary = Uint8List(0x20);
     }
 
     // 16 bits magic.
@@ -215,8 +221,8 @@ class MiioPacket {
     // TODO: https://github.com/dart-lang/sdk/issues/45140
     final iv = md5.convert(key.toList()..addAll(token)).bytes;
 
-    var decrypted = await _cipher.decrypt(
-      SecretBox(packet, nonce: iv, mac: Mac([])),
+    final decrypted = await _cipher.decrypt(
+      SecretBox(packet, nonce: iv, mac: Mac.empty),
       secretKey: SecretKey(key),
     );
 
