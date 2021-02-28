@@ -1,6 +1,6 @@
 name: miio
 description: Dart implementation of MIIO LAN protocol for smart home devices.
-version: 0.3.0
+version: 0.4.0
 homepage: https://github.com/ctrysbita/miio-dart
 
 environment:
@@ -12,8 +12,8 @@ dependencies:
   crypto: ^3.0.0
   cryptography: ^2.0.0-nullsafety.2
   logger: ^1.0.0-nullsafety.0
+  meta: ^1.3.0
   tuple: ^2.0.0-nullsafety.0
 
 dev_dependencies:
   effective_dart: ^1.0.0
-  meta: ^1.3.0

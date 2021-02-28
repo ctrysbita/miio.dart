@@ -72,7 +72,7 @@ packages:
     source: hosted
     version: "0.12.10"
   meta:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: meta
       url: "https://pub.flutter-io.cn"
