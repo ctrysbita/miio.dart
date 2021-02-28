@@ -21,6 +21,7 @@ import 'dart:io';
 import 'package:tuple/tuple.dart';
 
 import 'src/packet.dart';
+import 'src/utils.dart';
 
 export 'src/packet.dart';
 
@@ -87,7 +88,9 @@ class Miio {
     late final StreamSubscription<RawSocketEvent> subscription;
     final timer = Timer(timeout, () {
       if (completer.isCompleted) return;
-      completer.complete();
+      completer.completeError(
+        TimeoutException('Timeout while receving response.'),
+      );
       subscription.cancel();
       socket.close();
     });
@@ -98,6 +101,14 @@ class Miio {
       if (datagram == null) return;
 
       var resp = await MiioPacket.parse(datagram.data, token: packet.token);
+      logger.v('Receiving binary packet:\n' '${resp.binary.prettyString}');
+      logger.d(
+        'Receiving packet ${resp.length == 32 ? '(hello)' : ''}\n'
+        '$resp\n'
+        'with payload\n'
+        '${jsonEncoder.convert(resp.payload)}\n'
+        'from ${datagram.address.address} port 54321',
+      );
       _cacheStamp(resp);
 
       completer.complete(resp);
@@ -106,6 +117,14 @@ class Miio {
       socket.close();
     });
 
+    logger.d(
+      'Sending packet ${packet.length == 32 ? '(hello)' : ''}\n'
+      '$packet\n'
+      'with payload\n'
+      '${jsonEncoder.convert(packet.payload)}\n'
+      'to ${address.address} port 54321',
+    );
+    logger.v('Sending binary packet:\n' '${packet.binary.prettyString}');
     socket.send(packet.binary, address, 54321);
 
     return completer.future;

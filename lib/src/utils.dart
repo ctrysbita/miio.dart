@@ -13,12 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'dart:convert';
+
 import 'package:logger/logger.dart';
 
 final logger = Logger(
   filter: ProductionFilter(),
   printer: PrettyPrinter(methodCount: 0, printTime: true),
 );
+
+final jsonEncoder = JsonEncoder.withIndent('    ');
 
 extension IntToHexString on int {
   String toHexString([int? width]) {
@@ -30,4 +34,20 @@ extension IntToHexString on int {
 extension BytesToHexString on List<int> {
   String get hexString =>
       map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+
+  String get prettyString {
+    final strList = map((e) => e.toRadixString(16).padLeft(2, '0'));
+    var str = StringBuffer();
+    var bytesOfLine = 0;
+    for (var i in strList) {
+      str.write(i);
+      str.write(' ');
+      bytesOfLine++;
+      if (bytesOfLine == 16) {
+        str.writeln();
+        bytesOfLine = 0;
+      }
+    }
+    return str.toString();
+  }
 }
