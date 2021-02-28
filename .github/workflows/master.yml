@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
       - run: pub get
       - name: Build
         run: dart2native ./bin/main.dart -o ./miio
@@ -25,10 +27,13 @@ jobs:
           name: MIIO_${{ matrix.os }}
           path: ./miio
   BuildWindows:
+    name: Build (windows)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: cedx/setup-dart@v2
+        with:
+          release-channel: dev
       - run: pub get
       - name: Build
         run: dart2native ./bin/main.dart -o ./miio.exe
