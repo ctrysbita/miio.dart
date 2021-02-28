@@ -26,42 +26,50 @@ class DiscoverCommand extends Command<void> {
   @override
   final String description = 'Discover devices under LAN.';
 
-  String? ip;
+  late final String? ip;
   late final bool table;
 
   DiscoverCommand() {
-    argParser.addOption(
-      'ip',
-      help: 'The IP address to send discovery packet.'
-          ' Usually broadcast address of your subnet.',
-      valueHelp: '192.168.1.255',
-      callback: (s) => ip = s,
-    );
-    argParser.addFlag(
-      'table',
-      abbr: 't',
-      help: 'Print a table instead of messages.',
-      defaultsTo: false,
-      callback: (t) => table = t,
-    );
+    argParser
+      ..addOption(
+        'ip',
+        help: 'The IP address to send discovery packet.'
+            ' Usually broadcast address of your subnet.',
+        valueHelp: '192.168.1.255',
+        callback: (s) => ip = s,
+      )
+      ..addFlag(
+        'table',
+        help: 'Print a table instead of messages.',
+        defaultsTo: false,
+        callback: (t) => table = t,
+      );
   }
 
   @override
   Future<void> run() async {
     if (ip == null) {
+      logger.e('Option ip is required.');
+      printUsage();
+      return;
+    }
+
+    final address = InternetAddress.tryParse(ip!);
+    if (address == null) {
+      logger.e('Invalid IP address: $ip');
       printUsage();
       return;
     }
 
     if (table) print('Address\t\tID\t\tStamp\t\tToken');
-    await for (var resp in Miio.instance.discover(InternetAddress(ip!))) {
+    await for (var resp in Miio.instance.discover(address)) {
       final address = resp.item1;
       final packet = resp.item2;
       if (!table) {
         logger.i('Found MIIO device from ${address.address}:\n'
-            'ID: ${packet.deviceId.toHexString(8)}\n'
+            'ID: 0x${packet.deviceId.toHexString(8)}\n'
             'Stamp: ${packet.stamp}\n'
-            'Bootup Time: '
+            'Startup Date: '
             '${DateTime.now().subtract(Duration(seconds: packet.stamp))}\n'
             'Token: ${packet.checksum.hexString.padLeft(32, '0')}');
       } else {

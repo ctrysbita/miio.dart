@@ -17,6 +17,7 @@ import 'package:args/command_runner.dart';
 import 'package:logger/logger.dart';
 
 import 'command/discover.dart';
+import 'command/send.dart';
 
 class MiioCommandRunner extends CommandRunner<void> {
   MiioCommandRunner() : super('miio', 'Cli for handling MIIO protocol.') {
@@ -37,5 +38,6 @@ class MiioCommandRunner extends CommandRunner<void> {
     );
 
     addCommand(DiscoverCommand());
+    addCommand(SendCommand());
   }
 }
