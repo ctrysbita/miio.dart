@@ -8,11 +8,23 @@ The protocol an encrypted, binary protocol based on UDP (port 54321), which is u
 
 The package contains a simple CLI program that built on top of miio.
 
+### Installation
+
+- Activate from Pub:
+
+```sh
+pub global activate miio
+```
+
+- Download pre-built binary from [Github Action](https://github.com/ctrysbita/miio-dart/actions)
+
 ### Example
 
-```
+```sh
+# Send discover packet to broadcast IP.
 miio discover --ip 192.168.1.255
 
+# Send packet to device.
 miio send --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff --payload '{\"id\": 1, \"method\": \"miIO.info\", \"params\": []}'
 ```
 
