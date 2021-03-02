@@ -67,7 +67,7 @@ class DiscoverCommand extends Command<void> {
       final packet = resp.item2;
       if (!table) {
         logger.i('Found MIIO device from ${address.address}:\n'
-            'ID: 0x${packet.deviceId.toHexString(8)}\n'
+            'ID: 0x${packet.deviceId.toHexString(8)} (${packet.deviceId})\n'
             'Stamp: ${packet.stamp}\n'
             'Startup Date: '
             '${DateTime.now().subtract(Duration(seconds: packet.stamp))}\n'

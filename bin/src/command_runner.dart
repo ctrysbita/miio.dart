@@ -17,6 +17,7 @@ import 'package:args/command_runner.dart';
 import 'package:logger/logger.dart';
 
 import 'command/discover.dart';
+import 'command/packet.dart';
 import 'command/send.dart';
 
 class MiioCommandRunner extends CommandRunner<void> {
@@ -39,5 +40,6 @@ class MiioCommandRunner extends CommandRunner<void> {
 
     addCommand(DiscoverCommand());
     addCommand(SendCommand());
+    addCommand(PacketCommand());
   }
 }
