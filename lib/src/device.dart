@@ -53,11 +53,11 @@ class MiioDevice {
     return resp.payload;
   }
 
-  /// Get a property using legacy MIIO profile.
-  Future<String?> getProp(String prop) async => (await getProps([prop]))?.first;
-
-  /// Get a set of properties using legacy MIIO profile.
-  Future<List<String>?> getProps(List<String> props) async {
+  /// Call method on device.
+  Future<List<dynamic>?> call(
+    String method, [
+    List<String> params = const [],
+  ]) async {
     final resp = await Miio.instance.send(
       address,
       await MiioPacket.build(
@@ -65,12 +65,22 @@ class MiioDevice {
         token,
         payload: <String, dynamic>{
           'id': Random().nextInt(32768),
-          'method': 'get_prop',
-          'params': props,
+          'method': method,
+          'params': params,
         },
       ),
     );
 
-    return (resp.payload?['result'] as List<dynamic>).cast();
+    return resp.payload?['result'] as List<dynamic>;
+  }
+
+  /// Get a property using legacy MIIO profile.
+  Future<String?> getProp(String prop) async => (await getProps([prop]))?.first;
+
+  /// Get a set of properties using legacy MIIO profile.
+  Future<List<String>?> getProps(List<String> props) async {
+    final resp = await call('get_prop', props);
+
+    return resp?.cast();
   }
 }
