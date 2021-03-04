@@ -20,6 +20,7 @@ import 'package:crypto/crypto.dart' show md5;
 import 'package:cryptography/cryptography.dart';
 import 'package:meta/meta.dart';
 
+import 'protocol.dart';
 import 'utils.dart';
 
 /// Represent a packet in MIIO LAN protocol.
@@ -90,7 +91,8 @@ class MiioPacket {
     int? stamp,
   }) async {
     assert(token.length == 16);
-    stamp ??= DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    stamp ??= Miio.instance.stampOf(deviceId) ??
+        DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
     late Uint8List binary;
     if (payload != null) {
