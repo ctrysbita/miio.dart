@@ -47,7 +47,7 @@ class DeviceCommand extends Command<void> {
 
     addSubcommand(InfoCommand());
     addSubcommand(CallCommand());
-    addSubcommand(GetPropCommand());
+    addSubcommand(GetPropsCommand());
   }
 
   Future<MiioDevice?> get device async {
@@ -148,36 +148,43 @@ class CallCommand extends Command<void> {
   }
 }
 
-class GetPropCommand extends Command<void> {
+class GetPropsCommand extends Command<void> {
   @override
-  final String name = 'prop';
+  final String name = 'props';
 
   @override
   final String description = 'Get prop from device using legacy MIIO profile.';
 
-  late final String? prop;
+  late final List<String> props;
 
-  GetPropCommand() {
+  GetPropsCommand() {
     argParser
-      ..addOption(
+      ..addMultiOption(
         'prop',
+        abbr: 'p',
         help: 'The prop to get.',
         valueHelp: 'power',
-        callback: (s) => prop = s,
+        callback: (s) => props = s,
       );
   }
 
   @override
   Future<void> run() async {
-    if (prop == null) {
-      logger.e('Option prop is required.');
+    if (props.isEmpty) {
+      logger.e('Option props is required.');
       printUsage();
-      return null;
+      return;
     }
 
     final device = await (parent as DeviceCommand).device;
     if (device == null) return;
 
-    print(await device.getProp(prop!));
+    final results = await device.getProps(props);
+    print(jsonEncoder.convert(
+      Map<String, dynamic>.fromIterables(
+        props,
+        results ?? List<dynamic>.filled(props.length, null),
+      ),
+    ));
   }
 }

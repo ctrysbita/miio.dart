@@ -15,6 +15,7 @@
 
 import 'dart:convert';
 
+import 'package:convert/convert.dart';
 import 'package:logger/logger.dart';
 
 final logger = Logger(
@@ -32,8 +33,7 @@ extension IntToHexString on int {
 }
 
 extension BytesToHexString on List<int> {
-  String get hexString =>
-      map((e) => e.toRadixString(16).padLeft(2, '0')).join();
+  String get hexString => hex.encode(this);
 
   String get prettyString {
     final strList = map((e) => e.toRadixString(16).padLeft(2, '0'));

@@ -26,6 +26,10 @@ miio discover --ip 192.168.1.255
 
 # Send packet to device.
 miio send --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff --payload '{\"id\": 1, \"method\": \"miIO.info\", \"params\": []}'
+
+# Or use device command.
+miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff props -p power
+miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff call --method set_power -p on
 ```
 
 ## Protocol
