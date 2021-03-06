@@ -173,13 +173,15 @@ class MiioPacket {
       stamp |= binary[i];
     }
 
-    var checksum = binary.sublist(16, 32);
-    var binaryPayload = binary.sublist(32);
+    final checksum = binary.sublist(16, 32);
+    final binaryPayload = binary.sublist(32);
 
     Map<String, dynamic>? payload;
     if (token != null) {
-      var decrypted = await decrypt(binaryPayload, token);
-      payload = jsonDecode(utf8.decode(decrypted)) as Map<String, dynamic>;
+      final decrypted = await decrypt(binaryPayload, token);
+      // Remove '\x00' at the end of string.
+      final payloadStr = utf8.decode(decrypted).replaceAll('\x00', '');
+      payload = jsonDecode(payloadStr) as Map<String, dynamic>;
     }
 
     return MiioPacket._(

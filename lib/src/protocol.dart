@@ -96,8 +96,9 @@ class Miio {
       var datagram = socket.receive();
       if (datagram == null) return;
 
+      logger.v('Receiving binary packet:\n' '${datagram.data.prettyString}');
       var resp = await MiioPacket.parse(datagram.data, token: packet.token);
-      logger.v('Receiving binary packet:\n' '${resp.binary.prettyString}');
+
       logger.d(
         'Receiving packet ${resp.length == 32 ? '(hello)' : ''}\n'
         '$resp\n'
