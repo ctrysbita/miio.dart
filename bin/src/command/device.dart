@@ -48,6 +48,7 @@ class DeviceCommand extends Command<void> {
     addSubcommand(InfoCommand());
     addSubcommand(CallCommand());
     addSubcommand(GetPropsCommand());
+    addSubcommand(PropertyCommand());
   }
 
   Future<MiioDevice?> get device async {
@@ -156,7 +157,7 @@ class GetPropsCommand extends Command<void> {
   final String name = 'props';
 
   @override
-  final String description = 'Get prop from device using legacy MIIO profile.';
+  final String description = 'Get props from device using legacy MIIO profile.';
 
   late final List<String> props;
 
@@ -189,5 +190,70 @@ class GetPropsCommand extends Command<void> {
         results,
       ),
     ));
+  }
+}
+
+class PropertyCommand extends Command<void> {
+  @override
+  final String name = 'property';
+
+  @override
+  final String description = 'Get / Set property using MIoT spec.';
+
+  late final int? siid;
+  late final int? piid;
+  late final dynamic value;
+
+  PropertyCommand() {
+    argParser
+      ..addOption(
+        'siid',
+        abbr: 's',
+        help: 'Serice ID.',
+        callback: (s) => siid = s == null ? null : int.tryParse(s),
+      )
+      ..addOption(
+        'piid',
+        abbr: 'p',
+        help: 'Property ID.',
+        callback: (s) => piid = s == null ? null : int.tryParse(s),
+      )
+      ..addOption(
+        'value',
+        abbr: 'v',
+        help: 'Value to set.',
+        callback: (s) => value = parseValue(s),
+      );
+  }
+
+  dynamic parseValue(String? value) {
+    if (value == null) return null;
+    if (value == 'true') return true;
+    if (value == 'false') return false;
+
+    return int.tryParse(value) ?? double.tryParse(value) ?? null;
+  }
+
+  @override
+  Future<void> run() async {
+    if (siid == null || piid == null) {
+      logger.e('Option siid and piid are required.');
+      printUsage();
+      return;
+    }
+
+    final device = await (parent as DeviceCommand).device;
+    if (device == null) return;
+
+    if (value == null) {
+      logger
+          .i('Getting service $siid property $piid from device ${device.id}.');
+      print(await device.getProperty<dynamic>(siid!, piid!));
+    } else {
+      logger.i('Setting service $siid property $piid\n'
+          'of device ${device.id}\n'
+          'to $value.');
+      await device.setProperty<dynamic>(siid!, piid!, value);
+    }
   }
 }

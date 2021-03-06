@@ -95,4 +95,27 @@ class MiioDevice {
 
     return resp.cast();
   }
+
+  /// Get property using MIoT spec.
+  Future<T> getProperty<T>(int siid, int piid) async {
+    final resp = await call('get_properties', <Map<String, dynamic>>[
+      <String, dynamic>{
+        'siid': siid,
+        'piid': piid,
+      }
+    ]);
+
+    return resp.first['value'] as T;
+  }
+
+  /// Set property using MIoT spec.
+  Future<void> setProperty<T>(int siid, int piid, dynamic value) async {
+    await call('set_properties', <Map<String, dynamic>>[
+      <String, dynamic>{
+        'siid': siid,
+        'piid': piid,
+        'value': value,
+      }
+    ]);
+  }
 }
