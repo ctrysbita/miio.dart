@@ -16,6 +16,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'error.dart';
 import 'packet.dart';
 import 'protocol.dart';
 import 'utils.dart';
@@ -54,7 +55,7 @@ class MiioDevice {
   }
 
   /// Call method on device.
-  Future<List<dynamic>?> call(
+  Future<List<dynamic>> call(
     String method, [
     List<dynamic> params = const <dynamic>[],
   ]) async {
@@ -71,16 +72,27 @@ class MiioDevice {
       ),
     );
 
-    return resp.payload?['result'] as List<dynamic>;
+    final payload = resp.payload;
+    if (payload == null) {
+      throw MiioError(code: -1, message: 'No payload available.');
+    }
+    if (payload.containsKey('error')) {
+      throw MiioError(
+        code: payload['error']['code'] as int,
+        message: payload['error']['message'] as String,
+      );
+    }
+
+    return payload['result'] as List<dynamic>;
   }
 
   /// Get a property using legacy MIIO profile.
-  Future<String?> getProp(String prop) async => (await getProps([prop]))?.first;
+  Future<String> getProp(String prop) async => (await getProps([prop])).first;
 
   /// Get a set of properties using legacy MIIO profile.
-  Future<List<String>?> getProps(List<String> props) async {
+  Future<List<String>> getProps(List<String> props) async {
     final resp = await call('get_prop', props);
 
-    return resp?.cast();
+    return resp.cast();
   }
 }

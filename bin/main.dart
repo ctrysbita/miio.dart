@@ -13,6 +13,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'package:miio/miio.dart';
+import 'package:miio/src/utils.dart';
+
 import 'src/command_runner.dart';
 
-void main(List<String> args) => MiioCommandRunner().run(args);
+void main(List<String> args) async {
+  try {
+    await MiioCommandRunner().run(args);
+  } on MiioError catch (e) {
+    logger.e('Command failed with error from device:\n'
+        'code: ${e.code}\n'
+        'message: ${e.message}');
+  } on Exception catch (e) {
+    logger.e('Command failed with exception:\n$e');
+  }
+}

@@ -183,7 +183,7 @@ class GetPropsCommand extends Command<void> {
     print(jsonEncoder.convert(
       Map<String, dynamic>.fromIterables(
         props,
-        results ?? List<dynamic>.filled(props.length, null),
+        results,
       ),
     ));
   }

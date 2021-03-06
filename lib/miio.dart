@@ -14,5 +14,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 export 'src/device.dart';
+export 'src/error.dart';
 export 'src/packet.dart';
 export 'src/protocol.dart';
