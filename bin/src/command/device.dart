@@ -144,7 +144,10 @@ class CallCommand extends Command<void> {
     final device = await (parent as DeviceCommand).device;
     if (device == null) return;
 
-    print(await device.call(method!, params));
+    print(await device.call(
+      method!,
+      params.map((e) => int.tryParse(e) ?? e).toList(),
+    ));
   }
 }
 
