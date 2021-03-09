@@ -87,8 +87,8 @@ class Miio {
       completer.completeError(
         TimeoutException('Timeout while receving response.'),
       );
-      subscription.cancel();
       socket.close();
+      subscription.cancel();
     });
 
     subscription =
@@ -108,10 +108,10 @@ class Miio {
       );
       _cacheStamp(resp);
 
-      completer.complete(resp);
-      subscription.cancel();
       timer.cancel();
       socket.close();
+      completer.complete(resp);
+      await subscription.cancel();
     });
 
     logger.d(
