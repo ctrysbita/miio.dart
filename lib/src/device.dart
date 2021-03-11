@@ -22,12 +22,12 @@ import 'protocol.dart';
 import 'utils.dart';
 
 /// Device based API that handles MIIO protocol easier.
-class MiioDevice {
+class MiIoDevice {
   final InternetAddress address;
   final int id;
   final List<int> token;
 
-  MiioDevice({
+  MiIoDevice({
     required this.address,
     required this.token,
     required this.id,
@@ -35,13 +35,13 @@ class MiioDevice {
 
   @override
   String toString() =>
-      'MiioDevice(address: $address, id: ${id.toHexString(8)})';
+      'MiIoDevice(address: $address, id: ${id.toHexString(8)})';
 
   /// Get MIIO info.
   Future<Map<String, dynamic>?> get info async {
-    final resp = await Miio.instance.send(
+    final resp = await MiIo.instance.send(
       address,
-      await MiioPacket.build(
+      await MiIoPacket.build(
         id,
         token,
         payload: <String, dynamic>{
@@ -59,9 +59,9 @@ class MiioDevice {
     String method, [
     List<dynamic> params = const <dynamic>[],
   ]) async {
-    final resp = await Miio.instance.send(
+    final resp = await MiIo.instance.send(
       address,
-      await MiioPacket.build(
+      await MiIoPacket.build(
         id,
         token,
         payload: <String, dynamic>{
@@ -74,10 +74,10 @@ class MiioDevice {
 
     final payload = resp.payload;
     if (payload == null) {
-      throw MiioError(code: -1, message: 'No payload available.');
+      throw MiIoError(code: -1, message: 'No payload available.');
     }
     if (payload.containsKey('error')) {
-      throw MiioError(
+      throw MiIoError(
         code: payload['error']['code'] as int,
         message: payload['error']['message'] as String,
       );

@@ -62,7 +62,7 @@ class DiscoverCommand extends Command<void> {
     }
 
     if (table) print('Address\t\tID\t\tStamp\t\tToken');
-    await for (var resp in Miio.instance.discover(address)) {
+    await for (var resp in MiIo.instance.discover(address)) {
       final address = resp.item1;
       final packet = resp.item2;
       if (!table) {

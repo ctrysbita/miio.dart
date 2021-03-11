@@ -20,8 +20,8 @@ import 'src/command_runner.dart';
 
 void main(List<String> args) async {
   try {
-    await MiioCommandRunner().run(args);
-  } on MiioError catch (e) {
+    await MiIoCommandRunner().run(args);
+  } on MiIoError catch (e) {
     logger.e('Command failed with error from device:\n'
         'code: ${e.code}\n'
         'message: ${e.message}');

@@ -63,7 +63,7 @@ class PacketCommand extends Command<void> {
     }
 
     final binary = await File(filePath!).readAsBytes();
-    final packet = await MiioPacket.parse(binary, token: binaryToken);
+    final packet = await MiIoPacket.parse(binary, token: binaryToken);
 
     logger.v('Decoding binary packet:\n' '${binary.prettyString}');
     logger.d(

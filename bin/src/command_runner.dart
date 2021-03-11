@@ -21,8 +21,8 @@ import 'command/discover.dart';
 import 'command/packet.dart';
 import 'command/send.dart';
 
-class MiioCommandRunner extends CommandRunner<void> {
-  MiioCommandRunner() : super('miio', 'Cli for handling MIIO protocol.') {
+class MiIoCommandRunner extends CommandRunner<void> {
+  MiIoCommandRunner() : super('miio', 'Cli for handling MIIO protocol.') {
     argParser.addOption(
       'level',
       abbr: 'l',

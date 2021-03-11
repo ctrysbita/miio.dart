@@ -51,7 +51,7 @@ class DeviceCommand extends Command<void> {
     addSubcommand(PropertyCommand());
   }
 
-  Future<MiioDevice?> get device async {
+  Future<MiIoDevice?> get device async {
     if (ip == null || token == null) {
       logger.e('Option ip and token are required.');
       printUsage();
@@ -79,8 +79,8 @@ class DeviceCommand extends Command<void> {
           'This may cause undefined behavior.');
     }
 
-    final hello = await Miio.instance.hello(address);
-    final device = MiioDevice(
+    final hello = await MiIo.instance.hello(address);
+    final device = MiIoDevice(
       address: address,
       token: binaryToken,
       id: hello.deviceId,

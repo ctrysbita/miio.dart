@@ -22,16 +22,16 @@ import 'packet.dart';
 import 'utils.dart';
 
 /// MIIO LAN protocol.
-class Miio {
-  static final instance = Miio._();
+class MiIo {
+  static final instance = MiIo._();
 
   /// Cached stamps.
   final _stamps = <int, DateTime>{};
 
-  Miio._();
+  MiIo._();
 
   /// Cache boot time of device from response packet.
-  void _cacheStamp(MiioPacket packet) {
+  void _cacheStamp(MiIoPacket packet) {
     _stamps[packet.deviceId] =
         DateTime.now().subtract(Duration(seconds: packet.stamp));
   }
@@ -46,39 +46,39 @@ class Miio {
   }
 
   /// Send discovery packet to [address].
-  Stream<Tuple2<InternetAddress, MiioPacket>> discover(
+  Stream<Tuple2<InternetAddress, MiIoPacket>> discover(
     InternetAddress address, {
     Duration timeout = const Duration(seconds: 3),
   }) async* {
     final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     Timer(timeout, socket.close);
 
-    socket.send(MiioPacket.hello.binary, address, 54321);
+    socket.send(MiIoPacket.hello.binary, address, 54321);
 
     await for (var _ in socket.where((e) => e == RawSocketEvent.read)) {
       var datagram = socket.receive();
       if (datagram == null) continue;
 
-      var resp = await MiioPacket.parse(datagram.data);
+      var resp = await MiIoPacket.parse(datagram.data);
       _cacheStamp(resp);
       yield Tuple2(datagram.address, resp);
     }
   }
 
   /// Send a hello packet to [address].
-  Future<MiioPacket> hello(
+  Future<MiIoPacket> hello(
     InternetAddress address, {
     Duration timeout = const Duration(seconds: 3),
   }) =>
-      send(address, MiioPacket.hello, timeout: timeout);
+      send(address, MiIoPacket.hello, timeout: timeout);
 
   /// Send a [packet] to [address].
-  Future<MiioPacket> send(
+  Future<MiIoPacket> send(
     InternetAddress address,
-    MiioPacket packet, {
+    MiIoPacket packet, {
     Duration timeout = const Duration(seconds: 3),
   }) async {
-    final completer = Completer<MiioPacket>();
+    final completer = Completer<MiIoPacket>();
     final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
 
     late final StreamSubscription<RawSocketEvent> subscription;
@@ -97,7 +97,7 @@ class Miio {
       if (datagram == null) return;
 
       logger.v('Receiving binary packet:\n' '${datagram.data.prettyString}');
-      var resp = await MiioPacket.parse(datagram.data, token: packet.token);
+      var resp = await MiIoPacket.parse(datagram.data, token: packet.token);
 
       logger.d(
         'Receiving packet ${resp.length == 32 ? '(hello)' : ''}\n'

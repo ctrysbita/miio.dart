@@ -6,7 +6,7 @@
 
 ## 0.3.0
 
-- Add send & hello to Miio.
+- Add send & hello to MiIo.
 - Add send to CLI.
 
 ## 0.2.0
