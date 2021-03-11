@@ -1,3 +1,8 @@
+## 0.5.0
+
+- Use MiIo for naming.
+- Add model for handling device properties using MIoT spec.
+
 ## 0.4.0
 
 - Refactor CLI implementation.

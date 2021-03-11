@@ -16,10 +16,14 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:json_annotation/json_annotation.dart';
+
 import 'error.dart';
 import 'packet.dart';
 import 'protocol.dart';
 import 'utils.dart';
+
+part 'device.g.dart';
 
 /// Device based API that handles MIIO protocol easier.
 class MiIoDevice {
@@ -96,26 +100,81 @@ class MiIoDevice {
     return resp.cast();
   }
 
-  /// Get property using MIoT spec.
+  /// Get a property using MIoT spec.
   Future<T> getProperty<T>(int siid, int piid) async {
-    final resp = await call('get_properties', <Map<String, dynamic>>[
-      <String, dynamic>{
-        'siid': siid,
-        'piid': piid,
-      }
-    ]);
+    final resp = await getProperties([GetPropertyReq(siid: siid, piid: piid)]);
 
-    return resp.first['value'] as T;
+    return resp.first.value as T;
   }
 
-  /// Set property using MIoT spec.
+  /// Get a set of properties using MIoT spec.
+  Future<List<GetPropertyResp>> getProperties(
+      List<GetPropertyReq> properties) async {
+    final resp = await call('get_properties', properties);
+
+    return resp
+        .map((dynamic e) => GetPropertyResp.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Set a property using MIoT spec.
   Future<void> setProperty<T>(int siid, int piid, dynamic value) async {
-    await call('set_properties', <Map<String, dynamic>>[
-      <String, dynamic>{
-        'siid': siid,
-        'piid': piid,
-        'value': value,
-      }
+    await setProperties([
+      SetPropertyReq<dynamic>(siid: siid, piid: piid, value: value),
     ]);
   }
+
+  /// Set a set of properties using MIoT spec.
+  Future<void> setProperties(List<SetPropertyReq> properties) async {
+    await call('set_properties', properties);
+  }
+}
+
+@JsonSerializable(createFactory: false)
+class GetPropertyReq {
+  final int siid;
+  final int piid;
+
+  const GetPropertyReq({
+    required this.siid,
+    required this.piid,
+  });
+
+  Map<String, dynamic> toJson() => _$GetPropertyReqToJson(this);
+}
+
+@JsonSerializable(createToJson: false)
+class GetPropertyResp {
+  final int code;
+  final int siid;
+  final int piid;
+  final dynamic value;
+
+  const GetPropertyResp({
+    required this.code,
+    required this.siid,
+    required this.piid,
+    required this.value,
+  });
+
+  factory GetPropertyResp.fromJson(Map<String, dynamic> json) =>
+      _$GetPropertyRespFromJson(json);
+
+  bool get isOk => code == 0;
+}
+
+@JsonSerializable(createFactory: false, genericArgumentFactories: true)
+class SetPropertyReq<T> {
+  final int siid;
+  final int piid;
+  final T value;
+
+  const SetPropertyReq({
+    required this.siid,
+    required this.piid,
+    required this.value,
+  });
+
+  Map<String, dynamic> toJson() =>
+      _$SetPropertyReqToJson<T>(this, (value) => value as Object);
 }
