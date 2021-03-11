@@ -231,7 +231,7 @@ class PropertyCommand extends Command<void> {
     if (value == 'true') return true;
     if (value == 'false') return false;
 
-    return int.tryParse(value) ?? double.tryParse(value) ?? null;
+    return int.tryParse(value) ?? double.tryParse(value) ?? value;
   }
 
   @override
