@@ -17,6 +17,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:quiver/iterables.dart';
 
 import 'error.dart';
 import 'packet.dart';
@@ -121,8 +122,11 @@ class MiIoDevice {
   /// Get a set of properties using MIoT spec.
   Future<List<GetPropertyResp>> getProperties(
       List<GetPropertyReq> properties) async {
-    final resp = await call('get_properties', properties);
-
+    // Request with chunks to prevent user ack timeout.
+    var resp = <dynamic>[];
+    for (var chunk in partition(properties, 10)) {
+      resp.addAll(await call('get_properties', chunk));
+    }
     return resp
         .map((dynamic e) => GetPropertyResp.fromJson(e as Map<String, dynamic>))
         .toList();
