@@ -28,25 +28,36 @@ part 'device.g.dart';
 /// Device based API that handles MIIO protocol easier.
 class MiIoDevice {
   final InternetAddress address;
-  final int id;
   final List<int> token;
+
+  int? _id;
+  int? get id => _id;
+
+  /// Get device ID from hello packet if no ID provided yet.
+  Future<int> get did async {
+    if (_id == null) {
+      final hello = await MiIo.instance.hello(address);
+      _id = hello.deviceId;
+    }
+    return _id!;
+  }
 
   MiIoDevice({
     required this.address,
     required this.token,
-    required this.id,
-  });
+    int? id,
+  }) : _id = id;
 
   @override
   String toString() =>
-      'MiIoDevice(address: $address, id: ${id.toHexString(8)})';
+      'MiIoDevice(address: $address, id: ${_id?.toHexString(8)})';
 
   /// Get MIIO info.
   Future<Map<String, dynamic>?> get info async {
     final resp = await MiIo.instance.send(
       address,
       await MiIoPacket.build(
-        id,
+        await did,
         token,
         payload: <String, dynamic>{
           'id': Random().nextInt(32768),
@@ -66,7 +77,7 @@ class MiIoDevice {
     final resp = await MiIo.instance.send(
       address,
       await MiIoPacket.build(
-        id,
+        await did,
         token,
         payload: <String, dynamic>{
           'id': Random().nextInt(32768),
