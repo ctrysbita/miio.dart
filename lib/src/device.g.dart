@@ -30,3 +30,11 @@ Map<String, dynamic> _$SetPropertyReqToJson<T>(
       'piid': instance.piid,
       'value': toJsonT(instance.value),
     };
+
+SetPropertyResp _$SetPropertyRespFromJson(Map<String, dynamic> json) {
+  return SetPropertyResp(
+    code: json['code'] as int,
+    siid: json['siid'] as int,
+    piid: json['piid'] as int,
+  );
+}

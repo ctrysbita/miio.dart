@@ -133,15 +133,23 @@ class MiIoDevice {
   }
 
   /// Set a property using MIoT spec.
-  Future<void> setProperty<T>(int siid, int piid, dynamic value) async {
-    await setProperties([
-      SetPropertyReq<dynamic>(siid: siid, piid: piid, value: value),
+  Future<bool> setProperty<T>(int siid, int piid, T value) async {
+    final resp = await setProperties([
+      SetPropertyReq<T>(siid: siid, piid: piid, value: value),
     ]);
+
+    return resp.first.isOk;
   }
 
   /// Set a set of properties using MIoT spec.
-  Future<void> setProperties(List<SetPropertyReq> properties) async {
-    await call('set_properties', properties);
+  Future<List<SetPropertyResp>> setProperties(
+    List<SetPropertyReq> properties,
+  ) async {
+    final resp = await call('set_properties', properties);
+
+    return resp
+        .map((dynamic e) => SetPropertyResp.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
 
@@ -192,4 +200,22 @@ class SetPropertyReq<T> {
 
   Map<String, dynamic> toJson() =>
       _$SetPropertyReqToJson<T>(this, (value) => value as Object);
+}
+
+@JsonSerializable(createToJson: false)
+class SetPropertyResp {
+  final int code;
+  final int siid;
+  final int piid;
+
+  const SetPropertyResp({
+    required this.code,
+    required this.siid,
+    required this.piid,
+  });
+
+  factory SetPropertyResp.fromJson(Map<String, dynamic> json) =>
+      _$SetPropertyRespFromJson(json);
+
+  bool get isOk => code == 0;
 }
