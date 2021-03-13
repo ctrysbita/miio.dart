@@ -1,3 +1,9 @@
+## 0.6.0
+
+- Automatically get device ID in device API.
+- Partition getProperties request to prevent timeout.
+- Add response for setting properties.
+
 ## 0.5.0
 
 - Use MiIo for naming.
