@@ -158,9 +158,13 @@ class GetPropertyReq {
   final int siid;
   final int piid;
 
+  @JsonKey(includeIfNull: false)
+  final String? did;
+
   const GetPropertyReq({
     required this.siid,
     required this.piid,
+    this.did,
   });
 
   Map<String, dynamic> toJson() => _$GetPropertyReqToJson(this);
@@ -192,10 +196,14 @@ class SetPropertyReq<T> {
   final int piid;
   final T value;
 
+  @JsonKey(includeIfNull: false)
+  final String? did;
+
   const SetPropertyReq({
     required this.siid,
     required this.piid,
     required this.value,
+    this.did,
   });
 
   Map<String, dynamic> toJson() =>

@@ -253,7 +253,8 @@ class PropertyCommand extends Command<void> {
       logger.i('Setting service $siid property $piid\n'
           'of device ${device.id}\n'
           'to $value.');
-      await device.setProperty<dynamic>(siid!, piid!, value);
+      final result = await device.setProperty<dynamic>(siid!, piid!, value);
+      print(result ? 'Ok' : 'Failed');
     }
   }
 }
