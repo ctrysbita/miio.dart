@@ -173,12 +173,14 @@ class GetPropertyReq {
 @JsonSerializable(createToJson: false)
 class GetPropertyResp {
   final int code;
+  final String did;
   final int siid;
   final int piid;
   final dynamic value;
 
   const GetPropertyResp({
     required this.code,
+    required this.did,
     required this.siid,
     required this.piid,
     required this.value,
@@ -213,11 +215,13 @@ class SetPropertyReq<T> {
 @JsonSerializable(createToJson: false)
 class SetPropertyResp {
   final int code;
+  final String did;
   final int siid;
   final int piid;
 
   const SetPropertyResp({
     required this.code,
+    required this.did,
     required this.siid,
     required this.piid,
   });

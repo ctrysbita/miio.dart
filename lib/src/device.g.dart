@@ -25,6 +25,7 @@ Map<String, dynamic> _$GetPropertyReqToJson(GetPropertyReq instance) {
 GetPropertyResp _$GetPropertyRespFromJson(Map<String, dynamic> json) {
   return GetPropertyResp(
     code: json['code'] as int,
+    did: json['did'] as String,
     siid: json['siid'] as int,
     piid: json['piid'] as int,
     value: json['value'],
@@ -54,6 +55,7 @@ Map<String, dynamic> _$SetPropertyReqToJson<T>(
 SetPropertyResp _$SetPropertyRespFromJson(Map<String, dynamic> json) {
   return SetPropertyResp(
     code: json['code'] as int,
+    did: json['did'] as String,
     siid: json['siid'] as int,
     piid: json['piid'] as int,
   );
