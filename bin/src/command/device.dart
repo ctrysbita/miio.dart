@@ -139,7 +139,7 @@ class CallCommand extends Command<void> {
     if (method == null) {
       logger.e('Option method is required.');
       printUsage();
-      return null;
+      return;
     }
 
     final device = await (parent as DeviceCommand).device;
@@ -162,14 +162,13 @@ class GetPropsCommand extends Command<void> {
   late final List<String> props;
 
   GetPropsCommand() {
-    argParser
-      ..addMultiOption(
-        'prop',
-        abbr: 'p',
-        help: 'The prop to get.',
-        valueHelp: 'power',
-        callback: (s) => props = s,
-      );
+    argParser.addMultiOption(
+      'prop',
+      abbr: 'p',
+      help: 'The prop to get.',
+      valueHelp: 'power',
+      callback: (s) => props = s,
+    );
   }
 
   @override
