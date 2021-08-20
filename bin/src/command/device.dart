@@ -199,12 +199,19 @@ class PropertyCommand extends Command<void> {
   @override
   final String description = 'Get / Set property using MIoT spec.';
 
+  late final String? did;
   late final int? siid;
   late final int? piid;
   late final dynamic value;
 
   PropertyCommand() {
     argParser
+      ..addOption(
+        'did',
+        abbr: 'd',
+        help: 'Device ID.',
+        callback: (s) => did = s,
+      )
       ..addOption(
         'siid',
         abbr: 's',
@@ -247,12 +254,13 @@ class PropertyCommand extends Command<void> {
     if (value == null) {
       logger
           .i('Getting service $siid property $piid from device ${device.id}.');
-      print(await device.getProperty<dynamic>(siid!, piid!));
+      print(await device.getProperty<dynamic>(siid!, piid!, did));
     } else {
       logger.i('Setting service $siid property $piid\n'
           'of device ${device.id}\n'
           'to $value.');
-      final result = await device.setProperty<dynamic>(siid!, piid!, value);
+      final result =
+          await device.setProperty<dynamic>(siid!, piid!, value, did);
       print(result ? 'Ok' : 'Failed');
     }
   }

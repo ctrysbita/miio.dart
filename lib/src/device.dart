@@ -113,8 +113,10 @@ class MiIoDevice {
   }
 
   /// Get a property using MIoT spec.
-  Future<T> getProperty<T>(int siid, int piid) async {
-    final resp = await getProperties([GetPropertyReq(siid: siid, piid: piid)]);
+  Future<T> getProperty<T>(int siid, int piid, [String? did]) async {
+    final resp = await getProperties([
+      GetPropertyReq(siid: siid, piid: piid, did: did),
+    ]);
 
     return resp.first.value as T;
   }
@@ -133,9 +135,14 @@ class MiIoDevice {
   }
 
   /// Set a property using MIoT spec.
-  Future<bool> setProperty<T>(int siid, int piid, T value) async {
+  Future<bool> setProperty<T>(
+    int siid,
+    int piid,
+    T value, [
+    String? did,
+  ]) async {
     final resp = await setProperties([
-      SetPropertyReq<T>(siid: siid, piid: piid, value: value),
+      SetPropertyReq<T>(siid: siid, piid: piid, value: value, did: did),
     ]);
 
     return resp.first.isOk;
