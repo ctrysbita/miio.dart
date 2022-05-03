@@ -82,13 +82,13 @@ class SendCommand extends Command<void> {
           'This may cause undefined behavior.');
     }
 
-    late final Map<String, dynamic> payloadMap;
+    final Map<String, dynamic> payloadMap;
     try {
       dynamic decoded = jsonDecode(payload!);
       if (decoded is List) {
         throw FormatException('Payload can only be JSON map');
       }
-      payloadMap = decoded as Map<String, dynamic>;
+      payloadMap = decoded;
     } on FormatException catch (e) {
       logger.e('$e\nwhile parsing payload.');
       printUsage();

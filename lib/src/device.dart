@@ -113,9 +113,7 @@ class MiIODevice {
     for (final chunk in partition(properties, 12)) {
       resp.addAll(await call<List<dynamic>>('get_properties', chunk));
     }
-    return resp
-        .map((dynamic e) => GetPropertyResp.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return resp.map((e) => GetPropertyResp.fromJson(e)).toList();
   }
 
   /// Set a property using MIoT spec.
@@ -138,9 +136,7 @@ class MiIODevice {
   ) async {
     final resp = await call<List<dynamic>>('set_properties', properties);
 
-    return resp
-        .map((dynamic e) => SetPropertyResp.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return resp.map((e) => SetPropertyResp.fromJson(e)).toList();
   }
 
   @override

@@ -183,7 +183,7 @@ class MiIOPacket {
       final decrypted = await decrypt(binaryPayload, token);
       // Remove '\x00' at the end of string.
       final payloadStr = utf8.decode(decrypted).replaceAll('\x00', '');
-      payload = jsonDecode(payloadStr) as Map<String, dynamic>;
+      payload = jsonDecode(payloadStr);
     }
 
     return MiIOPacket._(
