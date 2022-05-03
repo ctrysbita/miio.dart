@@ -61,19 +61,20 @@ class DiscoverCommand extends Command<void> {
       return;
     }
 
-    if (table) print('Address\t\tID\t\tStamp\t\tToken');
-    await for (var resp in MiIo.instance.discover(address)) {
+    if (table) print('Address\t\tID\t\tID (hex)\tStamp\t\tToken');
+    await for (var resp in MiIO.instance.discover(address)) {
       final address = resp.item1;
       final packet = resp.item2;
       if (!table) {
-        logger.i('Found MIIO device from ${address.address}:\n'
-            'ID: 0x${packet.deviceId.toHexString(8)} (${packet.deviceId})\n'
+        logger.i('Found MiIO device from ${address.address}:\n'
+            'ID: ${packet.deviceId} (0x${packet.deviceId.toHexString(8)})\n'
             'Stamp: ${packet.stamp}\n'
             'Startup Date: '
             '${DateTime.now().subtract(Duration(seconds: packet.stamp))}\n'
             'Token: ${packet.checksum.hexString.padLeft(32, '0')}');
       } else {
         print('${address.address}\t'
+            '${packet.deviceId}\t'
             '${packet.deviceId.toHexString(8)}\t'
             '${packet.stamp.toHexString(8)}\t'
             '${packet.checksum.hexString.padLeft(32, '0')}');

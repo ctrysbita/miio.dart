@@ -1,13 +1,13 @@
-/// Represent an error received from MIIO device.
-class MiIoError implements Exception {
+/// Represent an error received from MiIO device.
+class MiIOError implements Exception {
   final int code;
   final String message;
 
-  MiIoError({
+  MiIOError({
     required this.code,
     required this.message,
   });
 
   @override
-  String toString() => 'MiIoError(code: $code, message: $message)';
+  String toString() => 'MiIOError(code: $code, message: $message)';
 }

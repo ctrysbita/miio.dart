@@ -26,62 +26,44 @@ import 'utils.dart';
 
 part 'device.g.dart';
 
-/// Device based API that handles MIIO protocol easier.
-class MiIoDevice {
+/// Device based API that handles MiIO protocol easier.
+class MiIODevice {
   final InternetAddress address;
   final List<int> token;
 
-  int? _id;
+  /// Get device ID.
   int? get id => _id;
+  int? _id;
 
-  /// Get device ID from hello packet if no ID provided yet.
+  /// Get device ID from hello packet if not existed.
   Future<int> get did async {
     if (_id == null) {
-      final hello = await MiIo.instance.hello(address);
+      final hello = await MiIO.instance.hello(address);
       _id = hello.deviceId;
     }
     return _id!;
   }
 
-  MiIoDevice({
+  MiIODevice({
     required this.address,
     required this.token,
     int? id,
-  }) : _id = id;
-
-  @override
-  String toString() =>
-      'MiIoDevice(address: $address, id: ${_id?.toHexString(8)})';
-
-  /// Get MIIO info.
-  Future<Map<String, dynamic>?> get info async {
-    final resp = await MiIo.instance.send(
-      address,
-      await MiIoPacket.build(
-        await did,
-        token,
-        payload: <String, dynamic>{
-          'id': Random().nextInt(32768),
-          'method': 'miIO.info',
-          'params': <void>[],
-        },
-      ),
-    );
-    return resp.payload;
-  }
+  })  : _id = id,
+        assert(token.length == 16);
 
   /// Call method on device.
-  Future<List<dynamic>> call(
+  Future<T> call<T>(
     String method, [
     List<dynamic> params = const <dynamic>[],
   ]) async {
-    final resp = await MiIo.instance.send(
+    final id = Random().nextInt(32768);
+    final resp = await MiIO.instance.send(
       address,
-      await MiIoPacket.build(
+      await MiIOPacket.build(
         await did,
         token,
         payload: <String, dynamic>{
-          'id': Random().nextInt(32768),
+          'id': id,
           'method': method,
           'params': params,
         },
@@ -90,32 +72,33 @@ class MiIoDevice {
 
     final payload = resp.payload;
     if (payload == null) {
-      throw MiIoError(code: -1, message: 'No payload available.');
+      throw MiIOError(code: -1, message: 'No payload available.');
     }
     if (payload.containsKey('error')) {
-      throw MiIoError(
+      throw MiIOError(
         code: payload['error']['code'] as int,
         message: payload['error']['message'] as String,
       );
     }
 
-    return payload['result'] as List<dynamic>;
+    return payload['result'] as T;
   }
 
-  /// Get a property using legacy MIIO profile.
-  Future<String> getProp(String prop) async => (await getProps([prop])).first;
+  /// Get MiIO info.
+  Future<Map<String, dynamic>> get info =>
+      call<Map<String, dynamic>>('miIO.info');
 
-  /// Get a set of properties using legacy MIIO profile.
-  Future<List<String>> getProps(List<String> props) async {
-    final resp = await call('get_prop', props);
+  /// Get a property using legacy MiIO profile.
+  Future<T> getProp<T>(String prop) async => (await getProps([prop])).first;
 
-    return resp.cast();
-  }
+  /// Get a set of properties using legacy MiIO profile.
+  Future<List<dynamic>> getProps(List<String> props) async =>
+      call<List<dynamic>>('get_prop', props);
 
   /// Get a property using MIoT spec.
   Future<T> getProperty<T>(int siid, int piid, [String? did]) async {
     final resp = await getProperties([
-      GetPropertyReq(siid: siid, piid: piid, did: did),
+      GetPropertyReq(did: did, siid: siid, piid: piid),
     ]);
 
     return resp.first.value as T;
@@ -123,11 +106,12 @@ class MiIoDevice {
 
   /// Get a set of properties using MIoT spec.
   Future<List<GetPropertyResp>> getProperties(
-      List<GetPropertyReq> properties) async {
+    List<GetPropertyReq> properties,
+  ) async {
     // Request with chunks to prevent user ack timeout.
     var resp = <dynamic>[];
-    for (var chunk in partition(properties, 10)) {
-      resp.addAll(await call('get_properties', chunk));
+    for (final chunk in partition(properties, 12)) {
+      resp.addAll(await call<List<dynamic>>('get_properties', chunk));
     }
     return resp
         .map((dynamic e) => GetPropertyResp.fromJson(e as Map<String, dynamic>))
@@ -142,7 +126,7 @@ class MiIoDevice {
     String? did,
   ]) async {
     final resp = await setProperties([
-      SetPropertyReq<T>(siid: siid, piid: piid, value: value, did: did),
+      SetPropertyReq<T>(did: did, siid: siid, piid: piid, value: value),
     ]);
 
     return resp.first.isOk;
@@ -152,26 +136,29 @@ class MiIoDevice {
   Future<List<SetPropertyResp>> setProperties(
     List<SetPropertyReq> properties,
   ) async {
-    final resp = await call('set_properties', properties);
+    final resp = await call<List<dynamic>>('set_properties', properties);
 
     return resp
         .map((dynamic e) => SetPropertyResp.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  @override
+  String toString() =>
+      'MiIODevice(address: $address, id: ${_id?.toHexString(8)})';
 }
 
 @JsonSerializable(createFactory: false)
 class GetPropertyReq {
+  @JsonKey(includeIfNull: false)
+  final String? did;
   final int siid;
   final int piid;
 
-  @JsonKey(includeIfNull: false)
-  final String? did;
-
   const GetPropertyReq({
+    this.did,
     required this.siid,
     required this.piid,
-    this.did,
   });
 
   Map<String, dynamic> toJson() => _$GetPropertyReqToJson(this);
@@ -201,22 +188,21 @@ class GetPropertyResp {
 
 @JsonSerializable(createFactory: false, genericArgumentFactories: true)
 class SetPropertyReq<T> {
+  @JsonKey(includeIfNull: false)
+  final String? did;
   final int siid;
   final int piid;
   final T value;
 
-  @JsonKey(includeIfNull: false)
-  final String? did;
-
   const SetPropertyReq({
+    this.did,
     required this.siid,
     required this.piid,
     required this.value,
-    this.did,
   });
 
   Map<String, dynamic> toJson() =>
-      _$SetPropertyReqToJson<T>(this, (value) => value as Object);
+      _$SetPropertyReqToJson<T>(this, (value) => value);
 }
 
 @JsonSerializable(createToJson: false)

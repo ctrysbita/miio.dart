@@ -51,7 +51,7 @@ class DeviceCommand extends Command<void> {
     addSubcommand(PropertyCommand());
   }
 
-  Future<MiIoDevice?> get device async {
+  Future<MiIODevice?> get device async {
     if (ip == null || token == null) {
       logger.e('Option ip and token are required.');
       printUsage();
@@ -79,8 +79,8 @@ class DeviceCommand extends Command<void> {
           'This may cause undefined behavior.');
     }
 
-    final hello = await MiIo.instance.hello(address);
-    final device = MiIoDevice(
+    final hello = await MiIO.instance.hello(address);
+    final device = MiIODevice(
       address: address,
       token: binaryToken,
       id: hello.deviceId,
@@ -157,7 +157,7 @@ class GetPropsCommand extends Command<void> {
   final String name = 'props';
 
   @override
-  final String description = 'Get props from device using legacy MIIO profile.';
+  final String description = 'Get props from device using legacy MiIO profile.';
 
   late final List<String> props;
 
@@ -252,16 +252,17 @@ class PropertyCommand extends Command<void> {
     if (device == null) return;
 
     if (value == null) {
-      logger
-          .i('Getting service $siid property $piid from device ${device.id}.');
+      logger.i(
+        'Getting service $siid property $piid from device ${device.id}.',
+      );
       print(await device.getProperty<dynamic>(siid!, piid!, did));
     } else {
-      logger.i('Setting service $siid property $piid\n'
-          'of device ${device.id}\n'
-          'to $value.');
+      logger.i(
+        'Setting service $siid property $piid of device ${device.id} to $value.',
+      );
       final result =
           await device.setProperty<dynamic>(siid!, piid!, value, did);
-      print(result ? 'Ok' : 'Failed');
+      print(result ? 'Done' : 'Failed');
     }
   }
 }

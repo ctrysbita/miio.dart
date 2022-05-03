@@ -36,16 +36,16 @@ extension BytesToHexString on List<int> {
   String get hexString => hex.encode(this);
 
   String get prettyString {
-    final strList = map((e) => e.toRadixString(16).padLeft(2, '0'));
+    final list = map((e) => e.toRadixString(16).padLeft(2, '0'));
     var str = StringBuffer();
-    var bytesOfLine = 0;
-    for (var i in strList) {
+    var lineBytes = 0;
+    for (var i in list) {
       str.write(i);
       str.write(' ');
-      bytesOfLine++;
-      if (bytesOfLine == 16) {
+      lineBytes++;
+      if (lineBytes == 16) {
         str.writeln();
-        bytesOfLine = 0;
+        lineBytes = 0;
       }
     }
     return str.toString();

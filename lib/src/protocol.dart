@@ -21,17 +21,17 @@ import 'package:tuple/tuple.dart';
 import 'packet.dart';
 import 'utils.dart';
 
-/// MIIO LAN protocol.
-class MiIo {
-  static final instance = MiIo._();
+/// MiIO LAN protocol.
+class MiIO {
+  static final instance = MiIO._();
 
   /// Cached stamps.
   final _stamps = <int, DateTime>{};
 
-  MiIo._();
+  MiIO._();
 
   /// Cache boot time of device from response packet.
-  void _cacheStamp(MiIoPacket packet) {
+  void _cacheStamp(MiIOPacket packet) {
     _stamps[packet.deviceId] =
         DateTime.now().subtract(Duration(seconds: packet.stamp));
   }
@@ -39,53 +39,52 @@ class MiIo {
   /// Get current stamp of device from cache if existed.
   int? stampOf(int deviceId) {
     final bootTime = _stamps[deviceId];
-    // ignore: avoid_returning_null
     if (bootTime == null) return null;
-
     return DateTime.now().difference(bootTime).inSeconds;
   }
 
-  /// Send discovery packet to [address].
-  Stream<Tuple2<InternetAddress, MiIoPacket>> discover(
+  /// Send discovery packet to broadcast [address].
+  Stream<Tuple2<InternetAddress, MiIOPacket>> discover(
     InternetAddress address, {
     Duration timeout = const Duration(seconds: 3),
   }) async* {
     final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     Timer(timeout, socket.close);
 
-    socket.send(MiIoPacket.hello.binary, address, 54321);
+    socket.send(MiIOPacket.hello.binary, address, 54321);
 
-    await for (var _ in socket.where((e) => e == RawSocketEvent.read)) {
-      var datagram = socket.receive();
+    await for (final event in socket) {
+      if (event != RawSocketEvent.read) continue;
+      final datagram = socket.receive();
       if (datagram == null) continue;
 
-      var resp = await MiIoPacket.parse(datagram.data);
+      var resp = await MiIOPacket.parse(datagram.data);
       _cacheStamp(resp);
       yield Tuple2(datagram.address, resp);
     }
   }
 
   /// Send a hello packet to [address].
-  Future<MiIoPacket> hello(
+  Future<MiIOPacket> hello(
     InternetAddress address, {
     Duration timeout = const Duration(seconds: 3),
   }) =>
-      send(address, MiIoPacket.hello, timeout: timeout);
+      send(address, MiIOPacket.hello, timeout: timeout);
 
   /// Send a [packet] to [address].
-  Future<MiIoPacket> send(
+  Future<MiIOPacket> send(
     InternetAddress address,
-    MiIoPacket packet, {
+    MiIOPacket packet, {
     Duration timeout = const Duration(seconds: 3),
   }) async {
-    final completer = Completer<MiIoPacket>();
+    final completer = Completer<MiIOPacket>();
     final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
 
     late final StreamSubscription<RawSocketEvent> subscription;
     final timer = Timer(timeout, () {
       if (completer.isCompleted) return;
       completer.completeError(
-        TimeoutException('Timeout while receving response.'),
+        TimeoutException('Timeout while receving response from $address.'),
       );
       socket.close();
       subscription.cancel();
@@ -97,31 +96,32 @@ class MiIo {
       if (datagram == null) return;
 
       logger.v('Receiving binary packet:\n' '${datagram.data.prettyString}');
-      var resp = await MiIoPacket.parse(datagram.data, token: packet.token);
+
+      final resp = await MiIOPacket.parse(datagram.data, token: packet.token);
 
       logger.d(
-        'Receiving packet ${resp.length == 32 ? '(hello)' : ''}\n'
+        'Receiving packet ${resp.length == 32 ? '(hello) ' : ''}'
+        'from ${datagram.address.address}:\n'
         '$resp\n'
-        'with payload\n'
-        '${jsonEncoder.convert(resp.payload)}\n'
-        'from ${datagram.address.address} port 54321',
+        '${jsonEncoder.convert(resp.payload)}',
       );
+
       _cacheStamp(resp);
+      completer.complete(resp);
 
       timer.cancel();
       socket.close();
-      completer.complete(resp);
-      await subscription.cancel();
+      subscription.cancel();
     });
 
     logger.d(
-      'Sending packet ${packet.length == 32 ? '(hello)' : ''}\n'
+      'Sending packet ${packet.length == 32 ? '(hello) ' : ''}'
+      'to ${address.address}:\n'
       '$packet\n'
-      'with payload\n'
-      '${jsonEncoder.convert(packet.payload)}\n'
-      'to ${address.address} port 54321',
+      '${jsonEncoder.convert(packet.payload)}',
     );
     logger.v('Sending binary packet:\n' '${packet.binary.prettyString}');
+
     socket.send(packet.binary, address, 54321);
 
     return completer.future;

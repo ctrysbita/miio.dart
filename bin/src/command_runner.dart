@@ -21,18 +21,21 @@ import 'command/discover.dart';
 import 'command/packet.dart';
 import 'command/send.dart';
 
-class MiIoCommandRunner extends CommandRunner<void> {
-  MiIoCommandRunner() : super('miio', 'Cli for handling MIIO protocol.') {
+class MiIOCommandRunner extends CommandRunner<void> {
+  MiIOCommandRunner() : super('miio', 'Cli for handling MiIO protocol.') {
     argParser.addOption(
       'level',
       abbr: 'l',
       help: 'Log level.',
-      allowed: ['verbose', 'debug', 'info'],
+      allowed: ['v', 'verbose', 'd', 'debug', 'i', 'info'],
       defaultsTo: 'info',
       callback: (level) {
         Logger.level = const <String, Level>{
+              'v': Level.verbose,
               'verbose': Level.verbose,
+              'd': Level.debug,
               'debug': Level.debug,
+              'i': Level.info,
               'info': Level.info,
             }[level] ??
             Level.info;

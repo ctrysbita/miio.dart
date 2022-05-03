@@ -13,7 +13,7 @@ jobs:
           - name: macos
             os: macos-latest
             output: miio
-          - name: win
+          - name: windows
             os: windows-latest
             output: miio.exe
     runs-on: ${{ matrix.os }}
@@ -28,5 +28,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: MIIO_${{ matrix.name }}
+          name: MiIO_${{ matrix.name }}
           path: ./${{ matrix.output }}

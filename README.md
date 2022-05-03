@@ -1,11 +1,11 @@
-# MIIO
+# MiIO
 
 <a href="https://pub.dartlang.org/packages/miio">
     <img src="https://img.shields.io/pub/v/miio.svg"
     alt="Pub Package" />
 </a>
 
-Dart implementation for MIIO LAN protocol.
+Dart implementation for MiIO LAN protocol.
 
 The protocol an encrypted, binary protocol based on UDP (port 54321), which is used to configure & control smart home devices made by Xiaomi Ecosystem.
 
@@ -17,9 +17,9 @@ The package contains a simple CLI program that built on top of miio.
 
 - Activate from Pub:
 
-```sh
-pub global activate miio
-```
+    ```sh
+    pub global activate miio
+    ```
 
 - Download pre-built binary from [Github Action](https://github.com/ctrysbita/miio-dart/actions)
 
@@ -32,9 +32,13 @@ miio discover --ip 192.168.1.255
 # Send packet to device.
 miio send --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff --payload '{\"id\": 1, \"method\": \"miIO.info\", \"params\": []}'
 
-# Or use device command.
+# Or use device API.
+# Legacy:
 miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff props -p power
-miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff call --method set_power -p on
+miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff call -m set_power -p on
+# MIoT Spec:
+miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff property -s 2 -p 1
+miio device --ip 192.168.1.100 --token ffffffffffffffffffffffffffffffff property -s 2 -p 1 -v true
 ```
 
 ## Protocol

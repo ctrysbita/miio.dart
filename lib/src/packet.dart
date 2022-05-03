@@ -23,14 +23,16 @@ import 'package:meta/meta.dart';
 import 'protocol.dart';
 import 'utils.dart';
 
-/// Represent a packet in MIIO LAN protocol.
+/// Represent a packet in MiIO LAN protocol.
+///
+/// The packet is immutable and unmodifiable once constructed.
 @immutable
-class MiIoPacket {
+class MiIOPacket {
   /// AES-CBC cipher for payload encryption.
   static final _cipher = AesCbc.with128bits(macAlgorithm: MacAlgorithm.empty);
 
   /// The "hello" packet.
-  static final hello = MiIoPacket._(
+  static final hello = MiIOPacket._(
     length: 0x20,
     unknown: 0xFFFFFFFF,
     deviceId: 0xFFFFFFFF,
@@ -72,7 +74,7 @@ class MiIoPacket {
   /// Binary form of packet.
   final List<int> binary;
 
-  const MiIoPacket._({
+  const MiIOPacket._({
     required this.length,
     required this.unknown,
     required this.deviceId,
@@ -84,37 +86,37 @@ class MiIoPacket {
   });
 
   /// Build an outgoing packet.
-  static Future<MiIoPacket> build(
+  static Future<MiIOPacket> build(
     final int deviceId,
     final List<int> token, {
     final Map<String, dynamic>? payload,
     int? stamp,
   }) async {
     assert(token.length == 16);
-    stamp ??= MiIo.instance.stampOf(deviceId) ??
-        DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    stamp ??= MiIO.instance.stampOf(deviceId) ?? 600;
 
-    late Uint8List binary;
+    Uint8List binary;
     if (payload != null) {
       // Variable sized payload.
-      var binaryPayload =
-          await encrypt(utf8.encode(jsonEncode(payload)), token);
-      binary = Uint8List(0x20 + binaryPayload.length)
-        ..setAll(0x20, binaryPayload);
+      final binPayload = await encrypt(
+        utf8.encode(jsonEncode(payload)),
+        token,
+      );
+      binary = Uint8List(0x20 + binPayload.length)..setAll(0x20, binPayload);
     } else {
       // Header only packet.
       binary = Uint8List(0x20);
     }
 
-    // 16 bits magic.
+    // 2 bytes magic.
     binary[0] = magic >> 8;
     binary[1] = magic & 0xFF;
 
-    // 16 bits length.
+    // 2 bytes length.
     binary[2] = binary.length >> 8;
     binary[3] = binary.length & 0xFF;
 
-    // 32 bits unknown field `0x00000000`.
+    // 4 bytes unknown field `0x00000000`.
     binary.fillRange(4, 8, 0);
 
     // 4 bytes device ID.
@@ -132,11 +134,11 @@ class MiIoPacket {
     // Initialize checksum field with token.
     binary.setAll(16, token);
 
-    // 128 bits MD5 checksum.
+    // 16 bytes MD5 checksum.
     final checksum = md5.convert(binary).bytes;
     binary.setAll(16, checksum);
 
-    return MiIoPacket._(
+    return MiIOPacket._(
       length: binary.length,
       unknown: 0x00000000,
       deviceId: deviceId,
@@ -149,7 +151,7 @@ class MiIoPacket {
   }
 
   /// Parse incoming packet.
-  static Future<MiIoPacket> parse(
+  static Future<MiIOPacket> parse(
     final List<int> binary, {
     List<int>? token,
   }) async {
@@ -184,7 +186,7 @@ class MiIoPacket {
       payload = jsonDecode(payloadStr) as Map<String, dynamic>;
     }
 
-    return MiIoPacket._(
+    return MiIOPacket._(
       length: length,
       unknown: unknown,
       deviceId: deviceId,
@@ -203,8 +205,7 @@ class MiIoPacket {
     // Key = MD5(token)
     final key = md5.convert(token).bytes;
     // IV  = MD5(Key + token)
-    // TODO: https://github.com/dart-lang/sdk/issues/45140
-    final iv = md5.convert(key.toList()..addAll(token)).bytes;
+    final iv = md5.convert(key + token).bytes;
 
     final encrypted = await _cipher.encrypt(
       payload,
@@ -222,8 +223,7 @@ class MiIoPacket {
     // Key = MD5(token)
     final key = md5.convert(token).bytes;
     // IV  = MD5(Key + token)
-    // TODO: https://github.com/dart-lang/sdk/issues/45140
-    final iv = md5.convert(key.toList()..addAll(token)).bytes;
+    final iv = md5.convert(key + token).bytes;
 
     final decrypted = await _cipher.decrypt(
       SecretBox(packet, nonce: iv, mac: Mac.empty),
@@ -234,7 +234,7 @@ class MiIoPacket {
   }
 
   @override
-  String toString() => 'MiIoPacket('
+  String toString() => 'MiIOPacket('
       'len: $length, '
       'unknown: ${unknown.toHexString(8)}, '
       'device: ${deviceId.toHexString(8)}, '

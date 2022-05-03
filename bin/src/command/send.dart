@@ -95,14 +95,14 @@ class SendCommand extends Command<void> {
       return;
     }
 
-    final hello = await MiIo.instance.hello(address);
-    final resp = await MiIo.instance.send(
+    final hello = await MiIO.instance.hello(address);
+    final resp = await MiIO.instance.send(
       address,
-      await MiIoPacket.build(
+      await MiIOPacket.build(
         hello.deviceId,
         binaryToken,
         payload: payloadMap,
-        stamp: MiIo.instance.stampOf(hello.deviceId),
+        stamp: MiIO.instance.stampOf(hello.deviceId),
       ),
     );
     print(jsonEncoder.convert(resp.payload));

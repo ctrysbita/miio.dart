@@ -1,3 +1,8 @@
+## 0.7.0
+
+- Upgrade dependencies.
+- Update packet & protocol implementation.
+
 ## 0.6.0
 
 - Automatically get device ID in device API.
