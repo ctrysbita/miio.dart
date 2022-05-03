@@ -1,0 +1,32 @@
+name: Build CLI
+
+on: push
+
+jobs:
+  Build:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu
+            os: ubuntu-latest
+            output: miio
+          - name: macos
+            os: macos-latest
+            output: miio
+          - name: win
+            os: windows-latest
+            output: miio.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: dev
+      - run: dart pub get
+      - name: Build
+        run: dart compile exe -o ./${{ matrix.output }} ./bin/miio.dart
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: MIIO_${{ matrix.name }}
+          path: ./${{ matrix.output }}
