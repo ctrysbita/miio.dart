@@ -21,7 +21,7 @@ The package contains a simple CLI program that built on top of miio.
     pub global activate miio
     ```
 
-- Download pre-built binary from [Github Action](https://github.com/ctrysbita/miio-dart/actions)
+- Download pre-built binary from [Github Action](https://github.com/ctrysbita/miio.dart/actions)
 
 ### Example
 

@@ -1,4 +1,4 @@
-## 0.7.0
+## 0.7.1
 
 - Upgrade dependencies.
 - Update packet & protocol implementation.
