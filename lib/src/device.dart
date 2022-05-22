@@ -54,8 +54,10 @@ class MiIODevice {
   /// Call method on device.
   Future<T> call<T>(
     String method, [
-    List<dynamic> params = const <dynamic>[],
+    dynamic params = const <dynamic>[],
   ]) async {
+    assert(params is Map || params is List);
+
     final id = Random().nextInt(32768);
     final resp = await MiIO.instance.send(
       address,
@@ -137,6 +139,23 @@ class MiIODevice {
     final resp = await call<List<dynamic>>('set_properties', properties);
 
     return resp.map((e) => SetPropertyResp.fromJson(e)).toList();
+  }
+
+  /// Trigger action on device.
+  Future<bool> action(
+    int siid,
+    int aiid, {
+    String? did,
+    List<dynamic> input = const <dynamic>[],
+  }) async {
+    final resp = await call<Map<String, dynamic>>('action', <String, dynamic>{
+      if (did != null) 'did': did,
+      'siid': siid,
+      'aiid': aiid,
+      if (input.isNotEmpty) 'in': input,
+    });
+
+    return resp['code'] == 0;
   }
 
   @override

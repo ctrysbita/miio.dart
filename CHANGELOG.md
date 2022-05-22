@@ -1,3 +1,7 @@
+## 0.8.0
+
+- Support actions.
+
 ## 0.7.1
 
 - Upgrade dependencies.

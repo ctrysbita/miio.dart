@@ -49,6 +49,7 @@ class DeviceCommand extends Command<void> {
     addSubcommand(CallCommand());
     addSubcommand(GetPropsCommand());
     addSubcommand(PropertyCommand());
+    addSubcommand(ActionCommand());
   }
 
   Future<MiIODevice?> get device async {
@@ -264,5 +265,55 @@ class PropertyCommand extends Command<void> {
           await device.setProperty<dynamic>(siid!, piid!, value, did);
       print(result ? 'Done' : 'Failed');
     }
+  }
+}
+
+class ActionCommand extends Command<void> {
+  @override
+  final String name = 'action';
+
+  @override
+  final String description = 'Trigger action on device.';
+
+  late final String? did;
+  late final int? siid;
+  late final int? aiid;
+
+  ActionCommand() {
+    argParser
+      ..addOption(
+        'did',
+        abbr: 'd',
+        help: 'Device ID.',
+        callback: (s) => did = s,
+      )
+      ..addOption(
+        'siid',
+        abbr: 's',
+        help: 'Serice ID.',
+        callback: (s) => siid = s == null ? null : int.tryParse(s),
+      )
+      ..addOption(
+        'aiid',
+        abbr: 'a',
+        help: 'Action ID.',
+        callback: (s) => aiid = s == null ? null : int.tryParse(s),
+      );
+  }
+
+  @override
+  Future<void> run() async {
+    if (siid == null || aiid == null) {
+      logger.e('Option siid and aiid are required.');
+      printUsage();
+      return;
+    }
+
+    final device = await (parent as DeviceCommand).device;
+    if (device == null) return;
+
+    logger.i('Trigger service $siid action $aiid for device ${device.id}.');
+    final resp = await device.action(siid!, aiid!, did: did);
+    print(resp ? 'Done' : 'Failed');
   }
 }
