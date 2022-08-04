@@ -13,24 +13,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import 'package:logger/logger.dart' as l;
 import 'package:logging/logging.dart';
-import 'package:miio/miio.dart';
 
-import 'src/command_runner.dart';
-import 'src/utils.dart';
+final _prettyPrinter = l.PrettyPrinter(methodCount: 0, printTime: true);
+final _levelMap = <Level, l.Level>{
+  Level.SHOUT: l.Level.wtf,
+  Level.SEVERE: l.Level.error,
+  Level.WARNING: l.Level.warning,
+  Level.INFO: l.Level.info,
+  Level.CONFIG: l.Level.info,
+  Level.FINE: l.Level.debug,
+  Level.FINER: l.Level.verbose,
+  Level.FINEST: l.Level.verbose,
+};
 
-void main(List<String> args) async {
-  Logger.root.onRecord.listen(prettyLogPrinter);
-
-  try {
-    await MiIOCommandRunner().run(args);
-  } on MiIOError catch (e) {
-    Logger.root.severe(
-      'Command failed with error from device:\n'
-      'code: ${e.code}\n'
-      'message: ${e.message}',
-    );
-  } on Exception catch (e) {
-    Logger.root.severe('Command failed with exception:\n$e');
-  }
+void prettyLogPrinter(LogRecord record) {
+  print(
+    _prettyPrinter
+        .log(l.LogEvent(
+          _levelMap[record.level]!,
+          record.message,
+          record.error,
+          record.stackTrace,
+        ))
+        .join('\n'),
+  );
 }

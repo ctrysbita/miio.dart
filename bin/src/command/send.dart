@@ -18,6 +18,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:convert/convert.dart';
+import 'package:logging/logging.dart';
 import 'package:miio/miio.dart';
 import 'package:miio/src/utils.dart';
 
@@ -56,14 +57,14 @@ class SendCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (ip == null || token == null || payload == null) {
-      logger.e('Option ip, token and payload are required.');
+      Logger.root.severe('Option ip, token and payload are required.');
       printUsage();
       return;
     }
 
     final address = InternetAddress.tryParse(ip!);
     if (address == null) {
-      logger.e('Invalid IP address: $ip');
+      Logger.root.severe('Invalid IP address: $ip');
       printUsage();
       return;
     }
@@ -72,14 +73,16 @@ class SendCommand extends Command<void> {
     try {
       binaryToken = hex.decode(token!);
     } on FormatException catch (e) {
-      logger.e('$e\nwhile parsing token.');
+      Logger.root.severe('$e\nwhile parsing token.');
       printUsage();
       return;
     }
 
     if (binaryToken.length != 16) {
-      logger.w('${binaryToken.length} bytes token is abnormal.\n'
-          'This may cause undefined behavior.');
+      Logger.root.warning(
+        '${binaryToken.length} bytes token is abnormal.\n'
+        'This may cause undefined behavior.',
+      );
     }
 
     final Map<String, dynamic> payloadMap;
@@ -90,7 +93,7 @@ class SendCommand extends Command<void> {
       }
       payloadMap = decoded;
     } on FormatException catch (e) {
-      logger.e('$e\nwhile parsing payload.');
+      Logger.root.severe('$e\nwhile parsing payload.');
       printUsage();
       return;
     }

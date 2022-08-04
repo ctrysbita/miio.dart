@@ -17,6 +17,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:convert/convert.dart';
+import 'package:logging/logging.dart';
 import 'package:miio/miio.dart';
 import 'package:miio/src/utils.dart';
 
@@ -54,14 +55,14 @@ class DeviceCommand extends Command<void> {
 
   Future<MiIODevice?> get device async {
     if (ip == null || token == null) {
-      logger.e('Option ip and token are required.');
+      Logger.root.severe('Option ip and token are required.');
       printUsage();
       return null;
     }
 
     final address = InternetAddress.tryParse(ip!);
     if (address == null) {
-      logger.e('Invalid IP address: $ip');
+      Logger.root.severe('Invalid IP address: $ip');
       printUsage();
       return null;
     }
@@ -70,14 +71,16 @@ class DeviceCommand extends Command<void> {
     try {
       binaryToken = hex.decode(token!);
     } on FormatException catch (e) {
-      logger.e('$e\nwhile parsing token.');
+      Logger.root.severe('$e\nwhile parsing token.');
       printUsage();
       return null;
     }
 
     if (binaryToken.length != 16) {
-      logger.w('${binaryToken.length} bytes token is abnormal.\n'
-          'This may cause undefined behavior.');
+      Logger.root.warning(
+        '${binaryToken.length} bytes token is abnormal.\n'
+        'This may cause undefined behavior.',
+      );
     }
 
     final hello = await MiIO.instance.hello(address);
@@ -87,7 +90,7 @@ class DeviceCommand extends Command<void> {
       id: hello.deviceId,
     );
 
-    logger.d('Using $device');
+    Logger.root.fine('Using $device');
     return device;
   }
 }
@@ -138,7 +141,7 @@ class CallCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (method == null) {
-      logger.e('Option method is required.');
+      Logger.root.severe('Option method is required.');
       printUsage();
       return;
     }
@@ -175,7 +178,7 @@ class GetPropsCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (props.isEmpty) {
-      logger.e('Option props is required.');
+      Logger.root.severe('Option props is required.');
       printUsage();
       return;
     }
@@ -244,7 +247,7 @@ class PropertyCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (siid == null || piid == null) {
-      logger.e('Option siid and piid are required.');
+      Logger.root.severe('Option siid and piid are required.');
       printUsage();
       return;
     }
@@ -253,12 +256,12 @@ class PropertyCommand extends Command<void> {
     if (device == null) return;
 
     if (value == null) {
-      logger.i(
+      Logger.root.info(
         'Getting service $siid property $piid from device ${device.id}.',
       );
       print(await device.getProperty<dynamic>(siid!, piid!, did));
     } else {
-      logger.i(
+      Logger.root.info(
         'Setting service $siid property $piid of device ${device.id} to $value.',
       );
       final result =
@@ -304,7 +307,7 @@ class ActionCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (siid == null || aiid == null) {
-      logger.e('Option siid and aiid are required.');
+      Logger.root.severe('Option siid and aiid are required.');
       printUsage();
       return;
     }
@@ -312,7 +315,9 @@ class ActionCommand extends Command<void> {
     final device = await (parent as DeviceCommand).device;
     if (device == null) return;
 
-    logger.i('Trigger service $siid action $aiid for device ${device.id}.');
+    Logger.root.info(
+      'Trigger service $siid action $aiid for device ${device.id}.',
+    );
     final resp = await device.action(siid!, aiid!, did: did);
     print(resp ? 'Done' : 'Failed');
   }

@@ -16,6 +16,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:tuple/tuple.dart';
 
 import 'packet.dart';
@@ -24,6 +25,9 @@ import 'utils.dart';
 /// MiIO LAN protocol.
 class MiIO {
   static final instance = MiIO._();
+
+  /// Local logger.
+  final _logger = Logger('MiIO');
 
   /// Cached stamps.
   final _stamps = <int, DateTime>{};
@@ -95,15 +99,17 @@ class MiIO {
       var datagram = socket.receive();
       if (datagram == null) return;
 
-      logger.v('Receiving binary packet:\n' '${datagram.data.prettyString}');
+      _logger.finest(
+        () => 'Receiving binary packet:\n' '${datagram.data.prettyString}',
+      );
 
       final resp = await MiIOPacket.parse(datagram.data, token: packet.token);
 
-      logger.d(
-        'Receiving packet ${resp.length == 32 ? '(hello) ' : ''}'
-        'from ${datagram.address.address}:\n'
-        '$resp\n'
-        '${jsonEncoder.convert(resp.payload)}',
+      _logger.fine(
+        () => 'Receiving packet ${resp.length == 32 ? '(hello) ' : ''}'
+            'from ${datagram.address.address}:\n'
+            '$resp\n'
+            '${jsonEncoder.convert(resp.payload)}',
       );
 
       _cacheStamp(resp);
@@ -114,13 +120,16 @@ class MiIO {
       subscription.cancel();
     });
 
-    logger.d(
-      'Sending packet ${packet.length == 32 ? '(hello) ' : ''}'
-      'to ${address.address}:\n'
-      '$packet\n'
-      '${jsonEncoder.convert(packet.payload)}',
+    _logger.fine(
+      () => 'Sending packet ${packet.length == 32 ? '(hello) ' : ''}'
+          'to ${address.address}:\n'
+          '$packet\n'
+          '${jsonEncoder.convert(packet.payload)}',
     );
-    logger.v('Sending binary packet:\n' '${packet.binary.prettyString}');
+
+    _logger.finest(
+      () => 'Sending binary packet:\n' '${packet.binary.prettyString}',
+    );
 
     socket.send(packet.binary, address, 54321);
 

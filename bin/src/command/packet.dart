@@ -17,6 +17,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:convert/convert.dart';
+import 'package:logging/logging.dart';
 import 'package:miio/miio.dart';
 import 'package:miio/src/utils.dart';
 
@@ -48,7 +49,7 @@ class PacketCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (filePath == null) {
-      logger.e('Option file is required.');
+      Logger.root.severe('Option file is required.');
       printUsage();
       return;
     }
@@ -57,18 +58,18 @@ class PacketCommand extends Command<void> {
     try {
       binaryToken = token == null ? null : hex.decode(token!);
     } on FormatException catch (e) {
-      logger.e('$e\nwhile parsing token.');
+      Logger.root.severe('$e\nwhile parsing token.');
       printUsage();
       return;
     }
 
     final binary = await File(filePath!).readAsBytes();
 
-    logger.v('Decoding binary packet:\n' '${binary.prettyString}');
+    Logger.root.finest('Decoding binary packet:\n' '${binary.prettyString}');
 
     final packet = await MiIOPacket.parse(binary, token: binaryToken);
 
-    logger.d(
+    Logger.root.fine(
       'Decoded packet ${packet.length == 32 ? '(hello)' : ''}\n'
       '$packet\n'
       '${jsonEncoder.convert(packet.payload)}',

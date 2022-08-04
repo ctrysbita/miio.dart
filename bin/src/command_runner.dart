@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import 'package:args/command_runner.dart';
-import 'package:logger/logger.dart';
+import 'package:logging/logging.dart';
 
 import 'command/device.dart';
 import 'command/discover.dart';
@@ -27,18 +27,20 @@ class MiIOCommandRunner extends CommandRunner<void> {
       'level',
       abbr: 'l',
       help: 'Log level.',
-      allowed: ['v', 'verbose', 'd', 'debug', 'i', 'info'],
+      allowed: ['v', 'verbose', 'f', 'fine', 'i', 'info', 'a', 'all'],
       defaultsTo: 'info',
       callback: (level) {
-        Logger.level = const <String, Level>{
-              'v': Level.verbose,
-              'verbose': Level.verbose,
-              'd': Level.debug,
-              'debug': Level.debug,
-              'i': Level.info,
-              'info': Level.info,
+        Logger.root.level = const <String, Level>{
+              'v': Level.FINEST,
+              'verbose': Level.FINEST,
+              'f': Level.FINE,
+              'fine': Level.FINE,
+              'i': Level.INFO,
+              'info': Level.INFO,
+              'a': Level.ALL,
+              'all': Level.ALL,
             }[level] ??
-            Level.info;
+            Level.INFO;
       },
     );
 

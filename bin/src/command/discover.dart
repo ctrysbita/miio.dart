@@ -16,6 +16,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:logging/logging.dart';
 import 'package:miio/miio.dart';
 import 'package:miio/src/utils.dart';
 
@@ -49,14 +50,14 @@ class DiscoverCommand extends Command<void> {
   @override
   Future<void> run() async {
     if (ip == null) {
-      logger.e('Option ip is required.');
+      Logger.root.severe('Option ip is required.');
       printUsage();
       return;
     }
 
     final address = InternetAddress.tryParse(ip!);
     if (address == null) {
-      logger.e('Invalid IP address: $ip');
+      Logger.root.severe('Invalid IP address: $ip');
       printUsage();
       return;
     }
@@ -66,12 +67,14 @@ class DiscoverCommand extends Command<void> {
       final address = resp.item1;
       final packet = resp.item2;
       if (!table) {
-        logger.i('Found MiIO device from ${address.address}:\n'
-            'ID: ${packet.deviceId} (0x${packet.deviceId.toHexString(8)})\n'
-            'Stamp: ${packet.stamp}\n'
-            'Startup Date: '
-            '${DateTime.now().subtract(Duration(seconds: packet.stamp))}\n'
-            'Token: ${packet.checksum.hexString.padLeft(32, '0')}');
+        Logger.root.info(
+          'Found MiIO device from ${address.address}:\n'
+          'ID: ${packet.deviceId} (0x${packet.deviceId.toHexString(8)})\n'
+          'Stamp: ${packet.stamp}\n'
+          'Startup Date: '
+          '${DateTime.now().subtract(Duration(seconds: packet.stamp))}\n'
+          'Token: ${packet.checksum.hexString.padLeft(32, '0')}',
+        );
       } else {
         print('${address.address}\t'
             '${packet.deviceId}\t'
